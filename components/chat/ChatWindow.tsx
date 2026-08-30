@@ -212,7 +212,7 @@ export function ChatWindow() {
       </aside>
 
       {/* ── Conversation ── */}
-      <section className="flex min-h-[70vh] flex-col rounded-xl border border-line bg-surface/60 shadow-soft lg:min-h-[calc(100vh-9rem)]">
+      <section className="flex min-h-[70vh] min-w-0 flex-col rounded-xl border border-line bg-surface/60 shadow-soft lg:min-h-[calc(100vh-9rem)]">
         {/* header */}
         <header className="flex items-center justify-between border-b border-line/80 px-5 py-4">
           <div className="flex items-center gap-3">

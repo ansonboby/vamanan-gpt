@@ -14,7 +14,14 @@ const sans = Inter({
   display: "swap",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : undefined);
+
 export const metadata: Metadata = {
+  metadataBase: siteUrl ? new URL(siteUrl) : undefined,
   title: "Vamanan GPT — Meet the storyteller of Onam",
   description:
     "An interactive AI experience that brings Vamanan to life through Onam storytelling, Kerala culture, conversation, and playful exploration.",

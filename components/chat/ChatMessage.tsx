@@ -16,7 +16,7 @@ export function ChatMessageBubble({
   if (message.role === "user") {
     return (
       <div className="flex justify-end animate-fade-up">
-        <div className="max-w-[85%] rounded-lg rounded-br-sm bg-forest px-5 py-3.5 text-[15px] leading-relaxed text-[#F6F1E7] shadow-soft sm:max-w-[75%]">
+        <div className="max-w-[85%] rounded-lg rounded-br-sm bg-forest px-5 py-3.5 text-[15px] leading-relaxed break-words text-[#F6F1E7] shadow-soft sm:max-w-[75%] [overflow-wrap:anywhere]">
           {message.text}
         </div>
       </div>
@@ -33,7 +33,7 @@ export function ChatMessageBubble({
           Vamanan{failed ? "" : ""}
         </p>
         <div
-          className={`rounded-lg rounded-tl-sm px-5 py-3.5 text-[15px] leading-relaxed ${
+          className={`rounded-lg rounded-tl-sm px-5 py-3.5 text-[15px] leading-relaxed break-words [overflow-wrap:anywhere] ${
             failed
               ? "border border-coral/40 bg-coral-soft/50 text-ink"
               : "border border-line bg-surface text-ink shadow-soft"
