@@ -1,0 +1,43 @@
+import type { Metadata, Viewport } from "next";
+import { Fraunces, Inter } from "next/font/google";
+import "./globals.css";
+
+const display = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const sans = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: "Vamanan GPT — Meet the storyteller of Onam",
+  description:
+    "An interactive AI experience that brings Vamanan to life through Onam storytelling, Kerala culture, conversation, and playful exploration.",
+  openGraph: {
+    title: "Vamanan GPT",
+    description:
+      "Meet Vamanan — a cultural AI storyteller inspired by the Onam tradition of Kerala.",
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#F6F1E7",
+  width: "device-width",
+  initialScale: 1,
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="en" className={`${display.variable} ${sans.variable}`}>
+      <body className="font-sans">{children}</body>
+    </html>
+  );
+}

@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+/* ── Design tokens (Tailwind v4 theme) ─────────────────────────── */
+@theme {
+  --color-background: #f6f1e7;
+  --color-surface: #fffdf8;
+  --color-surface-muted: #eee7d9;
+  --color-ink: #161616;
+  --color-ink-muted: #6e695f;
+  --color-forest: #163b32;
+  --color-forest-soft: #e1ece7;
+  --color-marigold: #e8b84b;
+  --color-marigold-soft: #f7eac2;
+  --color-coral: #d85d4e;
+  --color-coral-soft: #f5d9d4;
+  --color-line: #ddd5c6;
+
+  --font-display: var(--font-display-face), Georgia, serif;
+  --font-sans: var(--font-sans-face), system-ui, sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  --shadow-soft: 0 10px 30px rgba(22, 22, 22, 0.06);
+  --shadow-lift: 0 16px 40px rgba(22, 22, 22, 0.1);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Font variable wiring — set by next/font in layout.tsx */
+:root {
+  --font-display-face: var(--font-display);
+  --font-sans-face: var(--font-sans);
+}
+
+/* ── Base ──────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-marigold-soft);
+  color: var(--color-forest);
+}
+
+/* ── Focus ─────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-coral);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Paper texture overlay (subtle, edge-oriented) ──────────────── */
+.paper-texture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    rgba(22, 59, 50, 0.035) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+  mask-image: radial-gradient(
+    ellipse 120% 90% at 50% 40%,
+    black 30%,
+    transparent 75%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 120% 90% at 50% 40%,
+    black 30%,
+    transparent 75%
+  );
+}
+
+/* ── Animations ────────────────────────────────────────────────── */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes think-dot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s var(--ease-out-soft) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease both;
+}
+
+.animate-breathe {
+  animation: breathe 4.5s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 40s linear infinite;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
