@@ -24,6 +24,12 @@ export const metadata: Metadata = {
       "Meet Vamanan — a cultural AI storyteller inspired by the Onam tradition of Kerala.",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vamanan GPT",
+    description:
+      "Meet Vamanan — a cultural AI storyteller inspired by the Onam tradition of Kerala.",
+  },
 };
 
 export const viewport: Viewport = {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { LogoMark } from "@/components/ui/LogoMark";
 
 const LINKS = [
   { href: "/chat", label: "Talk" },
@@ -22,12 +23,7 @@ export function SiteNav() {
         aria-label="Main"
       >
         <Link href="/" className="flex items-center gap-2.5">
-          <span
-            aria-hidden="true"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-[13px] font-semibold text-[#F6F1E7]"
-          >
-            വ
-          </span>
+          <LogoMark size={30} />
           <span className="font-display text-lg font-semibold tracking-tight text-ink">
             Vamanan&nbsp;GPT
           </span>

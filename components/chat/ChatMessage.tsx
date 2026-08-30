@@ -1,4 +1,5 @@
 import type { ChatMessage } from "@/lib/types";
+import { LogoMark } from "@/components/ui/LogoMark";
 
 /**
  * ChatMessage — a single message in the conversation.
@@ -26,12 +27,7 @@ export function ChatMessageBubble({
 
   return (
     <div className="flex gap-3 animate-fade-up">
-      <span
-        aria-hidden="true"
-        className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-marigold-soft text-sm font-semibold text-forest"
-      >
-        വ
-      </span>
+      <LogoMark size={36} className="mt-1 shrink-0" />
       <div className="min-w-0 max-w-[85%] sm:max-w-[80%]">
         <p className="mb-1 text-[13px] font-medium text-ink-muted">
           Vamanan{failed ? "" : ""}
@@ -74,12 +70,7 @@ export function ChatMessageBubble({
 export function ThinkingBubble() {
   return (
     <div className="flex gap-3 animate-fade-in" aria-live="polite">
-      <span
-        aria-hidden="true"
-        className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-marigold-soft text-sm font-semibold text-forest"
-      >
-        വ
-      </span>
+      <LogoMark size={36} className="mt-1 shrink-0" />
       <div className="rounded-lg rounded-tl-sm border border-line bg-surface px-5 py-4 shadow-soft">
         <span className="sr-only">Vamanan is thinking</span>
         <div className="flex items-center gap-1.5" aria-hidden="true">
