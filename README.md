@@ -98,7 +98,7 @@ static. The demo never breaks.
 ## 🛠️ Run it locally
 
 ```bash
-git clone https://github.com/<you>/vamanan-gpt.git
+git clone https://github.com/ansonboby/vamanan-gpt.git
 cd vamanan-gpt
 npm install
 
