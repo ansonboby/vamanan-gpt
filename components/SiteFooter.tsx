@@ -12,17 +12,26 @@ export function SiteFooter() {
             Built with respect for the Onam tradition. Onam ashamsakal!
           </p>
         </div>
-        <div className="flex items-center gap-5 text-sm">
-          <Link href="/story" className="text-ink-muted transition-colors hover:text-forest">
+        <nav className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 sm:justify-end" aria-label="Footer">
+          <Link
+            href="/story"
+            className="inline-flex h-11 items-center rounded-md px-3 text-sm text-ink-muted transition-colors hover:text-forest"
+          >
             The Story
           </Link>
-          <Link href="/quiz" className="text-ink-muted transition-colors hover:text-forest">
+          <Link
+            href="/quiz"
+            className="inline-flex h-11 items-center rounded-md px-3 text-sm text-ink-muted transition-colors hover:text-forest"
+          >
             The Quiz
           </Link>
-          <Link href="/about" className="text-ink-muted transition-colors hover:text-forest">
+          <Link
+            href="/about"
+            className="inline-flex h-11 items-center rounded-md px-3 text-sm text-ink-muted transition-colors hover:text-forest"
+          >
             About
           </Link>
-        </div>
+        </nav>
       </div>
     </footer>
   );

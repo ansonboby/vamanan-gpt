@@ -52,13 +52,13 @@ export function ChatWindow() {
       const clean = text.trim();
       if (!clean) return;
 
-      // Name capture on first message when none is known
-      const mem = memory;
+      // Name capture on first message when none is known.
+      // updateMemory returns the next memory — keep chaining from it so
+      // later writes don't overwrite the name with a stale object.
+      let mem = memory;
       if (!mem.name) {
         const name = maybeExtractName(clean);
-        if (name) {
-          updateMemory(mem, { name });
-        }
+        if (name) mem = updateMemory(mem, { name });
       }
 
       let mode: string = "chat";

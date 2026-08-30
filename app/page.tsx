@@ -37,7 +37,7 @@ export default function LandingPage() {
     <div className="flex min-h-screen flex-col">
       <SiteNav />
 
-      <main className="paper-texture relative flex-1">
+      <main className="paper-texture relative flex-1 overflow-x-clip">
         {/* ── Hero ── */}
         <section className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pb-16 pt-12 sm:px-8 lg:grid-cols-[1.15fr_1fr] lg:gap-8 lg:pb-24 lg:pt-20">
           <div className="animate-fade-up">
@@ -65,9 +65,11 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="relative mx-auto lg:justify-self-end">
-            <PookalamRing className="absolute -left-24 -top-24 h-72 w-72 opacity-70" />
-            <PookalamRing className="absolute -bottom-20 -right-16 h-56 w-56 opacity-50" />
+          <div className="relative mx-auto max-w-full lg:justify-self-end">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <PookalamRing className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-[135%] -translate-y-[120%] opacity-70 sm:h-72 sm:w-72" />
+              <PookalamRing className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-[110%] translate-y-[110%] opacity-50 sm:h-56 sm:w-56" />
+            </div>
             <VamananGreeting />
           </div>
         </section>
@@ -123,7 +125,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── Cultural threads ── */}
-        <section className="mx-auto max-w-6xl px-5 py-14 pb-20 sm:px-8">
+        <section className="relative mx-auto max-w-6xl px-5 py-14 pb-20 sm:px-8">
           <h2 className="font-display text-2xl font-semibold text-ink sm:text-3xl">
             Threads of Kerala
           </h2>
