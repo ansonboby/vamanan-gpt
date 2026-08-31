@@ -91,13 +91,20 @@ export function ChatWindow() {
         });
         const data = (await res.json().catch(() => null)) as {
           reply?: string;
+          annotation?: { label: string; text: string };
         } | null;
         const reply =
           (data && typeof data.reply === "string" && data.reply.trim()) ||
           "The winds are a little restless. Try that again.";
+        const annotation =
+          data && data.annotation &&
+          typeof data.annotation.label === "string" &&
+          typeof data.annotation.text === "string"
+            ? data.annotation
+            : undefined;
         setMessages((prev) => [
           ...prev,
-          { id: uid(), role: "vamanan", text: reply },
+          { id: uid(), role: "vamanan", text: reply, annotation },
         ]);
       } catch {
         setMessages((prev) => [

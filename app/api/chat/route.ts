@@ -169,9 +169,20 @@ export async function POST(req: NextRequest) {
     console.warn("[chat] GEMINI_API_KEY not set — using local Vamanan engine");
   }
 
-  // Local fallback — never show a dead chat to a visitor
+  // Local fallback — never show a dead chat to a visitor.
+  // Recent assistant replies are passed in so the engine can rotate
+  // variants and continue topics instead of parroting itself.
+  const recentAssistant = history
+    .filter((h) => h.role === "vamanan")
+    .slice(-4)
+    .map((h) => h.text);
+  const local = localReply(message, {
+    name: memory?.name,
+    recent: recentAssistant,
+  });
   return NextResponse.json({
-    reply: localReply(message, { name: memory?.name }),
+    reply: local.reply,
+    annotation: local.annotation,
     source: "local",
   });
 }
