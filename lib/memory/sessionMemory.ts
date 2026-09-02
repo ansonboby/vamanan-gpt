@@ -87,6 +87,42 @@ export function maybeExtractName(message: string): string | undefined {
   return undefined;
 }
 
+/**
+ * Interests Vamanan can genuinely talk about — labels match topics
+ * in CULTURAL_KNOWLEDGE, so an extracted interest is always usable.
+ */
+const INTEREST_KEYWORDS: [interest: string, test: RegExp][] = [
+  ["pookalam", /\b(pookalam|athapoo|flower\s*carpet|floral|rangoli|poovu)\b/i],
+  ["sadya", /\b(sadya|sadhya|feast|payasam|banana[- ]leaf|onam\s*meal)\b/i],
+  ["vallam kali", /\b(vallam|snake\s*boat|boat\s*race|chundan|aranmula|alappuzha|alleppey)\b/i],
+  ["puli kali", /\b(puli\s*kali|tiger\s*dance)\b/i],
+  ["mahabali", /\b(mahabali|maveli|onathappan)\b/i],
+  ["the vamana legend", /\b(vamana|vishnu|three\s*paces|dwarf)\b/i],
+  ["kathakali", /\b(kathakali|theyyam|mohiniyattam|thiruvathira|dance)\b/i],
+  ["malayalam", /\b(malayalam|language)\b/i],
+  ["kerala", /\b(kerala|backwaters|monsoon|kalaripayattu)\b/i],
+  ["onam itself", /\b(onam|chingam|thiruvonam|atham)\b/i],
+];
+
+/** Pick up interests from what the user just said ("I love sadya"). */
+export function recordInterests(
+  memory: SessionMemory,
+  message: string
+): SessionMemory {
+  const found: string[] = [];
+  for (const [interest, test] of INTEREST_KEYWORDS) {
+    if (test.test(message) && !found.includes(interest)) found.push(interest);
+  }
+  if (!found.length) return memory;
+  // newest interests last, freshest six kept
+  const next = [
+    ...memory.interests.filter((i) => !found.includes(i)),
+    ...found,
+  ].slice(-MAX_INTERESTS);
+  if (next.join("\u0000") === memory.interests.join("\u0000")) return memory;
+  return updateMemory(memory, { interests: next });
+}
+
 function titleCase(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }

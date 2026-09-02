@@ -36,6 +36,11 @@ function sanitizeMemory(m: Record<string, unknown>): Mem | undefined {
   const out: Mem = {};
   if (typeof m.name === "string" && m.name.length <= 32) out.name = m.name.slice(0, 32);
   if (m.language === "english" || m.language === "malayalam" || m.language === "mixed") out.language = m.language;
+  if (Array.isArray(m.interests)) {
+    out.interests = m.interests
+      .filter((i): i is string => typeof i === "string" && i.length > 0 && i.length <= 32)
+      .slice(0, 6);
+  }
   if (Array.isArray(m.previousTopics)) {
     out.previousTopics = m.previousTopics
       .filter((t): t is string => typeof t === "string" && t.length <= 60)
@@ -48,6 +53,7 @@ function sanitizeMemory(m: Record<string, unknown>): Mem | undefined {
 type Mem = {
   name?: string;
   language?: "english" | "malayalam" | "mixed";
+  interests?: string[];
   previousTopics?: string[];
   quizScore?: number;
 };
@@ -153,7 +159,7 @@ export async function POST(req: NextRequest) {
         memory: {
           name: memory?.name,
           language: memory?.language ?? "english",
-          interests: [],
+          interests: memory?.interests ?? [],
           quizScore: memory?.quizScore,
         },
         mode,

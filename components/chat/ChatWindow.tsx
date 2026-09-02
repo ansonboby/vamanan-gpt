@@ -7,6 +7,7 @@ import {
   useSessionMemory,
   updateMemory,
   recordTopic,
+  recordInterests,
   maybeExtractName,
 } from "@/lib/memory/sessionMemory";
 import { VamananPresence } from "@/components/vamanan/VamananPresence";
@@ -66,6 +67,8 @@ export function ChatWindow() {
       if (/quiz|challenge/i.test(clean)) mode = "quiz";
       if (/story|mahabali/i.test(clean)) mode = "story";
 
+      // chain: name → interests → topic, each writing from the last
+      mem = recordInterests(mem, clean);
       recordTopic(mem, clean);
 
       const history = allMessages.map((m) => ({ role: m.role, text: m.text }));
@@ -83,6 +86,7 @@ export function ChatWindow() {
             memory: {
               name: mem.name,
               language: mem.language,
+              interests: mem.interests,
               previousTopics: mem.previousTopics,
               quizScore: mem.quizScore,
             },
