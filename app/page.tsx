@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { VamananGreeting } from "@/components/vamanan/VamananGreeting";
+import { PookalamBuilder } from "@/components/pookalam/PookalamBuilder";
 import { ButtonLink, ChipLink } from "@/components/ui/buttons";
 
 export const metadata: Metadata = {
@@ -121,6 +122,26 @@ export default function LandingPage() {
                 </span>
               </Link>
             ))}
+          </div>
+        </section>
+
+        {/* ── Lay a pookalam ── */}
+        <section className="border-y border-line/60 bg-surface/50">
+          <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 lg:py-20">
+            <div className="max-w-2xl">
+              <h2 className="font-display text-2xl font-semibold text-ink sm:text-3xl">
+                Lay a pookalam
+              </h2>
+              <p className="mt-2.5 text-[15px] leading-relaxed text-ink-muted">
+                In Kerala, the floral carpet begins small on Atham day and
+                grows one ring each morning until Thiruvonam — swept and
+                begun again, a welcome remade daily for a king&rsquo;s
+                homecoming. Try it: choose a flower, lay the days.
+              </p>
+            </div>
+            <div className="mt-9">
+              <PookalamBuilder />
+            </div>
           </div>
         </section>
 
