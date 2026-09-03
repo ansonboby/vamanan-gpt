@@ -48,7 +48,7 @@ export const EndScene = () => {
           opacity: fadeIn(14),
         }}
       >
-        vamanan.is-a.dev
+        vamanan-gpt.vercel.app
       </p>
 
       <div style={{ display: "flex", gap: 14, opacity: fadeIn(22) }}>
