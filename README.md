@@ -39,6 +39,7 @@ ten-question challenge — in English, Malayalam, or a friendly mix.
 | 📖 **The Story of Mahabali** | Five hand-illustrated scenes, from the golden age to the flowers that remember it. |
 | 🎯 **Vamanan's Challenge** | Ten questions on Kerala and Onam, with gentle verdicts and a final reaction from Vamanan himself. |
 | 🌸 **Cultural Threads** | Pookalam, sadya, vallam kali, Malayalam — a landing page you can explore as itself. |
+| 🪷 **Lay a Pookalam** | Build the flower carpet ring by ring, Atham to Thiruvonam — the ten days of Onam in one gesture. |
 
 No account needed — every journey starts with a question.
 
@@ -48,9 +49,13 @@ No account needed — every journey starts with a question.
 |:---:|:---:|
 | <img src="public/screenshots/landing.png" width="430" alt="Landing page hero with Vamanan and pookalam motifs"> | <img src="public/screenshots/chat.png" width="430" alt="Chat conversation with Vamanan"> |
 
-| Story | Quiz |
+| Pookalam builder | Story |
 |:---:|:---:|
-| <img src="public/screenshots/story.png" width="430" alt="Story mode — scene artwork"> | <img src="public/screenshots/quiz.png" width="430" alt="Quiz challenge with answer choices"> |
+| <img src="public/screenshots/pookalam.png" width="430" alt="Pookalam builder — laying flower rings from Atham to Thiruvonam"> | <img src="public/screenshots/story.png" width="430" alt="Story mode — scene artwork"> |
+
+| Quiz | Mobile |
+|:---:|:---:|
+| <img src="public/screenshots/quiz.png" width="430" alt="Quiz challenge with answer choices"> | <img src="public/screenshots/mobile-landing.png" width="215" alt="Landing page on mobile"> |
 
 ## 🚀 Live demo
 
@@ -81,6 +86,11 @@ Browser (Next.js + React + TypeScript + Tailwind)
 **No API key? No problem.** Chat falls back to a hand-written local engine if
 the Gemini key is missing or the network fails; story and quiz are fully
 static. The demo never breaks.
+
+**81-second demo video** — rendered with [Remotion](https://remotion.dev)
+from the app's own components (`video/` in this repo): character, story,
+pookalam, quiz, and the landing page, all in one take. See
+`video/out/vamanan-gpt-demo.mp4`.
 
 - **Character engine** — a layered system prompt (identity, personality,
   voice, cultural rules, session memory, current mode) keeps Vamanan in
