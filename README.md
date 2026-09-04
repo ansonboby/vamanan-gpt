@@ -57,7 +57,7 @@ ten-question challenge — in English, Malayalam, or a friendly mix.
   answers in character (try it: chat works even with no key deployed).
 - **Hardened by default.** Server-only API key, 20 req/min per-IP rate limit
   with an in-character response, input validation, prompt-injection resistance.
-- **Tested, not claimed.** CI runs lint + typecheck + build on every push
+- **Tested, not claimed.** CI runs lint + typecheck + 13 tests + build on every push
   ([status](https://github.com/ansonboby/vamanan-gpt/actions)); a 70-point
   E2E sweep (desktop + mobile) backs the accessibility and security notes below.
 
@@ -233,6 +233,10 @@ lib/
 
 ## 🧪 Quality
 
+- `npm test` — 13 committed tests ([tests/](./tests)): the 17-intent
+  local fallback engine and the session-memory chaining rules, run by
+  CI on every push — the "demo never breaks" guarantee is a green
+  checkmark, not a claim
 - `npm run lint` — ESLint (next/core-web-vitals), 0 errors
 - `npm run typecheck` — TypeScript strict, 0 errors
 - `npm run build` — production build, all routes static except `/api/chat`

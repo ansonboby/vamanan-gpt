@@ -381,7 +381,9 @@ export function localReply(
   if (matched) {
     const picked = pickFallback(matched, recent);
     let reply = picked.reply;
-    if (name && picked.layer === "fresh" && Math.random() < 0.35) {
+    // a known name always leads the greeting — deterministic, so the
+    // same hello twice in a demo never flips between personal and not
+    if (name && picked.layer === "fresh" && matched.id === "greeting") {
       reply = `${name} — ${reply.charAt(0).toLowerCase()}${reply.slice(1)}`;
     }
     return { reply, annotation: matched.annotation };

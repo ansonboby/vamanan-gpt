@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
-import type { SessionMemory } from "@/lib/types";
-import { defaultMemory } from "@/lib/types";
+import type { SessionMemory } from "../types.ts";
+import { defaultMemory } from "../types.ts";
 
 const KEY = "vamanan.memory.v1";
 const MAX_TOPICS = 8;
