@@ -6,6 +6,50 @@ import { QUIZ_QUESTIONS } from "@/lib/content/quiz";
 import { VamananAvatar } from "@/components/vamanan/VamananAvatar";
 import { loadMemory, updateMemory } from "@/lib/memory/sessionMemory";
 
+/** Share your verdict — navigator.share with clipboard fallback. */
+function ShareVerdict({ score, total }: { score: number; total: number }) {
+  const [state, setState] = useState<"idle" | "copied" | "unsupported">("idle");
+
+  const share = async () => {
+    const text = `I scored ${score}/${total} on Vamanan's Challenge — the Onam storytelling AI. Can you beat it? https://vamanan-gpt.vercel.app`;
+    const nav = navigator as Navigator & { share?: (d: { text: string }) => Promise<void> };
+    if (nav.share) {
+      try {
+        await nav.share({ text });
+        return; // user shared — no toast needed
+      } catch {
+        return; // user dismissed the sheet
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setState("copied");
+      setTimeout(() => setState("idle"), 2400);
+    } catch {
+      setState("unsupported");
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={share}
+      className="inline-flex h-12 items-center gap-2 rounded-pill border border-marigold-dark/50 bg-marigold-soft/40 px-7 text-[15px] font-medium text-ink transition-all hover:bg-marigold-soft/70 active:scale-[0.98]"
+    >
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path
+          d="M10.5 2.2 5 7.7m0 0L10.5 13.2M5 7.7H2a.9.9 0 0 0-.9.9v3.5c0 .5.4.9.9.9h3m6.5-10.8 3 3a.9.9 0 0 1 0 1.3l-3 3"
+          stroke="currentColor"
+          strokeWidth="1.3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      {state === "copied" ? "Copied to clipboard" : state === "unsupported" ? "Copy failed" : "Share my verdict"}
+    </button>
+  );
+}
+
 type Phase = "intro" | "question" | "answered" | "done";
 
 const CORRECT_REACTIONS = [
@@ -145,6 +189,7 @@ export function QuizMode() {
           >
             Hear the story
           </Link>
+          <ShareVerdict score={score} total={total} />
         </div>
       </div>
     );

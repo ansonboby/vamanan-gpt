@@ -13,11 +13,22 @@
 **Meet Vamanan — an interactive AI storyteller from Kerala's Onam tradition.**
 
 [![Live demo](https://img.shields.io/badge/live-vamanan--gpt.vercel.app-163B32?style=flat-square&labelColor=F6F1E7)](https://vamanan-gpt.vercel.app)
+![CI](https://github.com/ansonboby/vamanan-gpt/actions/workflows/ci.yml/badge.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&labelColor=00000010)
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Tailwind v4](https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-163B32?style=flat-square)
+
+</div>
+
+<div align="center">
+
+<!-- ~10s loop of the live app: laying a pookalam ring by ring, then chatting with Vamanan -->
+<img src="public/demo.gif" alt="Vamanan GPT demo — laying a pookalam on the landing page, then chatting with Vamanan about why Kerala celebrates Onam" width="720">
+
+*The live app, unedited — pookalam builder → chat with real Gemini replies.  
+Full [81-second demo video](https://vamanan-gpt.vercel.app/demo.mp4).*
 
 </div>
 
@@ -30,6 +41,25 @@ ten-question challenge — in English, Malayalam, or a friendly mix.
 
 > The heart of it is a promise. Mahabali kept his word even when it cost
 > him his kingdom — and Onam is the day he comes home.
+
+## 🏛️ For judges — the 90-second path
+
+1. **Land** → meet Vamanan → [**Live demo**](https://vamanan-gpt.vercel.app)
+2. **Lay a pookalam** — ten rings, one gesture, right on the landing page
+3. **Chat** → Vamanan asks your name → ask *“Why does Kerala celebrate Onam?”*
+4. **Hear the story** → five illustrated scenes of Mahabali and Vamana
+5. **Take the challenge** → quiz → score → Vamanan references it if you return to chat
+
+**Three engineering choices worth knowing about:**
+
+- **The demo cannot break.** Chat runs on Gemini with a hand-written local
+  fallback engine — if the API key, quota, or network fails, Vamanan still
+  answers in character (try it: chat works even with no key deployed).
+- **Hardened by default.** Server-only API key, 20 req/min per-IP rate limit
+  with an in-character response, input validation, prompt-injection resistance.
+- **Tested, not claimed.** CI runs lint + typecheck + build on every push
+  ([status](https://github.com/ansonboby/vamanan-gpt/actions)); a 70-point
+  E2E sweep (desktop + mobile) backs the accessibility and security notes below.
 
 ## ✨ What you can do
 
@@ -59,14 +89,7 @@ No account needed — every journey starts with a question.
 
 ## 🚀 Live demo
 
-**https://vamanan-gpt.vercel.app**
-
-The 90-second judge path:
-1. Land → meet Vamanan → **Meet Vamanan** CTA
-2. Vamanan asks your name → type it
-3. Ask *“Why does Kerala celebrate Onam?”* → in-character answer
-4. **Hear the story** → five scenes
-5. **Take the challenge** → quiz → score → Vamanan's verdict
+**https://vamanan-gpt.vercel.app** — the same 90-second path above, live.
 
 ## ⚙️ How it works
 
@@ -89,8 +112,9 @@ static. The demo never breaks.
 
 **81-second demo video** — rendered with [Remotion](https://remotion.dev)
 from the app's own components (`video/` in this repo): character, story,
-pookalam, quiz, and the landing page, all in one take. See
-`video/out/vamanan-gpt-demo.mp4`.
+pookalam, quiz, and the landing page, all in one take. Watch it at
+[**vamanan-gpt.vercel.app/demo.mp4**](https://vamanan-gpt.vercel.app/demo.mp4)
+or see `video/out/vamanan-gpt-demo.mp4`.
 
 - **Character engine** — a layered system prompt (identity, personality,
   voice, cultural rules, session memory, current mode) keeps Vamanan in
