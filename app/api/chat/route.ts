@@ -98,24 +98,38 @@ async function callGemini(
     { role: "user", parts: [{ text: message }] },
   ];
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents,
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 700,
-        },
-      }),
-      signal: AbortSignal.timeout(15_000),
-    }
-  );
+  async function attempt(): Promise<Response> {
+    return fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents,
+          generationConfig: {
+            temperature: 0.8,
+            maxOutputTokens: 700,
+          },
+        }),
+        signal: AbortSignal.timeout(15_000),
+      }
+    );
+  }
 
-  if (!res.ok) return null;
+  let res = await attempt();
+  // 429 = per-minute quota blip — one short retry covers most windows;
+  // anything else (or a second 429) falls through to the local engine
+  if (res.status === 429) {
+    console.warn("[chat] gemini 429 — retrying once after backoff");
+    await new Promise((r) => setTimeout(r, 2_500));
+    res = await attempt();
+  }
+
+  if (!res.ok) {
+    console.error("[chat] gemini error:", res.status, (await res.text().catch(() => "")).slice(0, 200));
+    return null;
+  }
   const data = await res.json();
   const text =
     data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";

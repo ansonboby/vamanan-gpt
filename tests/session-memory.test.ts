@@ -27,6 +27,7 @@ const { loadMemory, updateMemory, recordTopic, recordInterests, maybeExtractName
 beforeEach(() => store.clear());
 
 test("updateMemory chains correctly (name then interests then topics)", () => {
+  // eslint-disable-next-line prefer-const, @typescript-eslint/no-unused-vars -- reassignment IS the chain
   let m = loadMemory();
   m = updateMemory(m, { name: "Ravi" });
   m = updateMemory(m, { language: "mixed" });
@@ -39,7 +40,7 @@ test("updateMemory chains correctly (name then interests then topics)", () => {
 });
 
 test("stale-object anti-pattern is detectable (chaining is required)", () => {
-  let m = loadMemory();
+  const m = loadMemory();
   updateMemory(m, { name: "Ravi" }); // return value DISCARDED — the bug pattern
   updateMemory(m, { quizScore: 8 }); // this write starts from no-name object
   const final = loadMemory();
