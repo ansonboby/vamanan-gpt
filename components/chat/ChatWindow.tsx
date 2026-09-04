@@ -11,7 +11,7 @@ import {
   maybeExtractName,
 } from "@/lib/memory/sessionMemory";
 import { VamananPresence } from "@/components/vamanan/VamananPresence";
-import { ChatMessageBubble, ThinkingBubble } from "./ChatMessage";
+import { ChatMessageBubble, ThinkingBubble, makeThinkingSteps } from "./ChatMessage";
 import { PromptChips } from "./PromptChips";
 import { ChatInput } from "./ChatInput";
 
@@ -70,6 +70,9 @@ export function ChatWindow() {
         if (name) mem = updateMemory(mem, { name });
       }
 
+      const steps = makeThinkingSteps();
+      const startedAt = Date.now();
+
       let mode: string = "chat";
       if (mem.language !== "english") mode = "malayalam";
       if (/quiz|challenge/i.test(clean)) mode = "quiz";
@@ -116,7 +119,14 @@ export function ChatWindow() {
             : undefined;
         setMessages((prev) => [
           ...prev,
-          { id: uid(), role: "vamanan", text: reply, annotation },
+          {
+            id: uid(),
+            role: "vamanan",
+            text: reply,
+            annotation,
+            thinking: steps,
+            thinkingMs: Date.now() - startedAt,
+          },
         ]);
       } catch {
         setMessages((prev) => [
@@ -126,6 +136,8 @@ export function ChatWindow() {
             role: "vamanan",
             text: "The winds are a little restless. Try that again.",
             failed: true,
+            thinking: steps,
+            thinkingMs: Date.now() - startedAt,
           },
         ]);
       } finally {

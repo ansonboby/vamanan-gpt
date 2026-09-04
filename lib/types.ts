@@ -17,6 +17,10 @@ export interface ChatMessage {
   /** Optional cultural annotation card shown under a Vamanan message */
   annotation?: { label: string; text: string };
   failed?: boolean;
+  /** Reasoning steps Vamanan "showed" before this reply (Claude-style trace) */
+  thinking?: string[];
+  /** How long the reply took, in ms — powers the "Thought for Ns" chip */
+  thinkingMs?: number;
 }
 
 export interface QuizQuestion {

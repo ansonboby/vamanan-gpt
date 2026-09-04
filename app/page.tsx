@@ -84,23 +84,42 @@ export default function LandingPage() {
             {[
               {
                 href: "/chat",
-                glyph: "ഉ",
+                icon: (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 3a9 9 0 0 0-9 8.2c0 .45.38.8.83.8H12V3Z" fill="currentColor" opacity="0.9" />
+                    <path d="M12 3a9 9 0 0 1 9 8.2c0 .45-.38.8-.83.8H12V3Z" fill="currentColor" opacity="0.55" />
+                    <path d="M12 12v7.2a1.8 1.8 0 1 1-3.6 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    <path d="M9 17.5h1.2M13 17.5h.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.6" />
+                  </svg>
+                ),
                 title: "Talk to Vamanan",
                 desc: "Ask anything about Onam, Mahabali, or Kerala. He remembers your name and speaks Malayalam too.",
               },
               {
                 href: "/story",
-                glyph: "③",
+                icon: (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 6.5C10.4 4.9 8.2 4.2 5.5 4.2c-.6 0-1.1.5-1.1 1.1v11.2c0 .6.5 1.1 1.1 1.1 2.7 0 4.9.7 6.5 2.3 1.6-1.6 3.8-2.3 6.5-2.3.6 0 1.1-.5 1.1-1.1V5.3c0-.6-.5-1.1-1.1-1.1-2.7 0-4.9.7-6.5 2.3Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                    <path d="M12 6.5v12.4" stroke="currentColor" strokeWidth="1.6" />
+                  </svg>
+                ),
                 title: "Hear the Story",
                 desc: "The legend of Mahabali in five scenes — from the golden age to the flowers that remember it.",
               },
               {
                 href: "/quiz",
-                glyph: "✻",
+                icon: (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    {[0, 72, 144, 216, 288].map((deg) => (
+                      <ellipse key={deg} cx="12" cy="7.6" rx="2.3" ry="4.6" fill="currentColor" opacity="0.75" transform={`rotate(${deg} 12 12)`} />
+                    ))}
+                    <circle cx="12" cy="12" r="1.7" fill="currentColor" />
+                  </svg>
+                ),
                 title: "Take the Challenge",
                 desc: "Ten questions on Kerala and Onam. Immediate verdicts, gentle mockery, a final score.",
               },
-            ].map(({ href, glyph, title, desc }) => (
+            ].map(({ href, icon, title, desc }) => (
               <Link
                 key={href}
                 href={href}
@@ -108,9 +127,9 @@ export default function LandingPage() {
               >
                 <span
                   aria-hidden="true"
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-marigold-soft font-display text-xl text-forest"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-marigold-soft text-forest"
                 >
-                  {glyph}
+                  {icon}
                 </span>
                 <h3 className="mt-5 font-display text-xl font-semibold text-ink">{title}</h3>
                 <p className="mt-2.5 text-[15px] leading-relaxed text-ink-muted">{desc}</p>
