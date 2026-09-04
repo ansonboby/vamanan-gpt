@@ -29,7 +29,7 @@ character-driven cultural experience, not a generic chatbot.
 - Prefer simple architecture.
 - Do not add dependencies without justification.
 - Do not introduce unnecessary infrastructure (no auth, no database,
-  no CMS — the PRD forbids them for the MVP).
+  no CMS — out of scope for the MVP).
 - Keep secrets server-side. `GEMINI_API_KEY` must never appear in client
   code or client-visible bundles.
 - Prefer reusable components.
@@ -43,7 +43,8 @@ character-driven cultural experience, not a generic chatbot.
 
 ## DESIGN
 
-- Follow design.md.
+- Follow the design system as implemented in `app/globals.css` and
+  the existing components.
 - Do not replace the design system casually.
 - Avoid generic SaaS styling.
 - Avoid excessive gradients, glassmorphism, neon AI aesthetics, and
@@ -90,7 +91,7 @@ character-driven cultural experience, not a generic chatbot.
 ## WHEN UNCERTAIN
 
 - Inspect the repository first.
-- Consult design.md and PRD.md.
+- Read README.md and the code.
 - Choose the simplest correct solution.
 
 <!-- BEGIN:nextjs-agent-rules -->

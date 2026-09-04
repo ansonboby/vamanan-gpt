@@ -151,9 +151,9 @@ hand-crafted SVG in the same motif language: pookalam rings, banana
 leaves, a small storyteller with a ceremonial umbrella (the *chatra* —
 the brand mark).
 
-See [design.md](./design.md) for the full design system,
-[PRD.md](./PRD.md) for product decisions, and
-[stitch-prompts.md](./stitch-prompts.md) for the UI design briefs.
+See the design tokens in `app/globals.css` (colors, type scale, motion)
+and the components under `components/` — the design system lives in the
+code itself.
 
 ## 📁 Project structure
 
