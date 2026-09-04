@@ -88,10 +88,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
 
-  const text =
+  const raw =
     typeof body === "object" && body !== null
-      ? String((body as Record<string, unknown>).text ?? "").trim()
-      : "";
+      ? (body as Record<string, unknown>).text
+      : undefined;
+  if (typeof raw !== "string") {
+    return NextResponse.json({ error: "text required" }, { status: 400 });
+  }
+  const text = raw.trim();
   if (!text) return NextResponse.json({ error: "text required" }, { status: 400 });
   if (text.length > 700) {
     return NextResponse.json({ error: "text too long" }, { status: 400 });

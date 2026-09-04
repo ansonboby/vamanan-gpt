@@ -22,7 +22,7 @@ export function SiteNav() {
         className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8"
         aria-label="Main"
       >
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link href="/" className="flex min-h-11 items-center gap-2.5">
           <LogoMark size={30} />
           <span className="font-display text-lg font-semibold tracking-tight text-ink">
             Vamanan&nbsp;GPT
