@@ -25,6 +25,12 @@ function rateLimited(ip: string): boolean {
   }
   arr.push(now);
   hits.set(ip, arr);
+  // occasionally clean the map so it does not grow unbounded
+  if (hits.size > 2000) {
+    for (const [k, v] of hits) {
+      if (v.every((t) => now - t >= WINDOW_MS)) hits.delete(k);
+    }
+  }
   return false;
 }
 

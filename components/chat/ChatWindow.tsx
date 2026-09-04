@@ -43,7 +43,15 @@ export function ChatWindow() {
                   : "Ah, but every tradition begins with a first step — I know that personally. Come, ask me anything."
             }`
           : `Namaskaram, ${memory.name}! Welcome back to my little corner of Kerala. The kettle is on, the stories are in order. Where shall we wander today?`
-        : "Namaskaram, traveller! I am Vamanan — a small storyteller from the Onam tradition of Kerala. I did not expect company today. What shall I call you?",
+        : memory.quizScore !== undefined
+          ? `Namaskaram, traveller! So you took my challenge — ${memory.quizScore} of 10. ${
+              memory.quizScore >= 8
+                ? "Impressive. Even the flowers are whispering about it. What shall I call you?"
+                : memory.quizScore >= 5
+                  ? "Not bad — the story has taken root. Tell me your name and we shall grow it further."
+                  : "Ah, every tradition begins with a first step — I know that personally. What shall I call you?"
+            }`
+          : "Namaskaram, traveller! I am Vamanan — a small storyteller from the Onam tradition of Kerala. I did not expect company today. What shall I call you?",
     }),
     [memory.name, memory.quizScore]
   );

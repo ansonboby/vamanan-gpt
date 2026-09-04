@@ -25,9 +25,11 @@ function useSpeakButton(text: string) {
     () => false
   );
 
-  // stop any in-flight speech on unmount (chat navigation)
+  // stop any in-flight speech on unmount (chat navigation) — also
+  // invalidates in-flight /api/voice requests via the epoch bump
   useEffect(() => {
     return () => {
+      epochRef.current++;
       audioRef.current?.pause();
       audioRef.current = null;
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -40,7 +42,12 @@ function useSpeakButton(text: string) {
   const audioUrlRef = useRef<string | null>(null);
   const audioTextRef = useRef<string>("");
 
+  // epoch guard — any stop()/unmount bumps this so a late-resolving
+  // /api/voice fetch never starts speaking after the user cancelled
+  const epochRef = useRef(0);
+
   const stop = useCallback(() => {
+    epochRef.current++;
     audioRef.current?.pause();
     audioRef.current = null;
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -99,6 +106,7 @@ function useSpeakButton(text: string) {
       return;
     }
     setSpeaking(true); // optimistic — the wait for /api/voice IS the delivery
+    const epoch = epochRef.current;
     try {
       const res = await fetch("/api/voice", {
         method: "POST",
@@ -108,6 +116,7 @@ function useSpeakButton(text: string) {
       const ct = res.headers.get("content-type") ?? "";
       if (res.ok && ct.startsWith("audio/")) {
         const blob = await res.blob();
+        if (epochRef.current !== epoch) return; // user stopped mid-fetch
         const url = URL.createObjectURL(blob);
         audioUrlRef.current = url;
         audioTextRef.current = clean;
@@ -123,6 +132,7 @@ function useSpeakButton(text: string) {
       // API said no → browser speech if available
       throw new Error("tts unavailable");
     } catch {
+      if (epochRef.current !== epoch) return; // user stopped mid-fetch
       setSpeaking(false);
       if (browserVoice) {
         speakWithBrowser();
