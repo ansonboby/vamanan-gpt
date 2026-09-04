@@ -292,7 +292,7 @@ export function ChatMessageBubble({
               onClick={toggle}
               aria-label={speaking ? "Stop Vamanan speaking" : "Listen to Vamanan's reply"}
               title={speaking ? "Stop speaking" : "Listen to this reply"}
-              className="ml-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-forest/10 hover:text-forest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
+              className="relative ml-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-forest/10 hover:text-forest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest after:absolute after:-inset-1.5 after:content-['']"
             >
               {speaking ? (
                 <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
