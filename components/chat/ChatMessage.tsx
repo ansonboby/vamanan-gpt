@@ -1,55 +1,62 @@
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { ChatMessage } from "@/lib/types";
 import { LogoMark } from "@/components/ui/LogoMark";
 
 /**
- * Speech playback for Vamanan's replies — Web Speech API, zero deps.
- * Opt-in (never auto-speaks), hidden when the browser lacks support,
- * and strips markdown/Malayalam glyphs so the spoken line stays clean.
+ * Voice playback for Vamanan's replies.
  *
- * Robustness notes: voices load asynchronously in most browsers, so we
- * warm the list and re-pick on click; a reference to the utterance is
- * kept so it isn't garbage-collected mid-speech (a known Chrome bug);
- * and every exit path resets the speaking state.
+ * Tries the app's Gemini TTS route first (/api/voice — a warm, directed
+ * storyteller voice); if that's unavailable (no key, quota, offline),
+ * falls back to the browser's built-in speechSynthesis. The button is
+ * hidden only when neither path can work.
  */
 function useSpeakButton(text: string) {
   const [speaking, setSpeaking] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
-  // hydration-safe feature detect: false on the server, real answer on the client
-  const supported = useSyncExternalStore(
+  const browserVoice =
+    typeof window !== "undefined" && "speechSynthesis" in window;
+
+  // mounted after hydration — reveals the button without mismatching SSR
+  // (useSyncExternalStore: server snapshot false, client true, no effect-setState)
+  const mounted = useSyncExternalStore(
     () => () => {},
-    () => typeof window !== "undefined" && "speechSynthesis" in window,
+    () => true,
     () => false
   );
 
-  // warm the async voice list + stop speech on unmount (chat navigation)
+  // stop any in-flight speech on unmount (chat navigation)
   useEffect(() => {
-    if (supported) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.getVoices();
-      };
-    }
     return () => {
-      if (supported) window.speechSynthesis.cancel();
+      audioRef.current?.pause();
+      audioRef.current = null;
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
     };
-  }, [supported]);
+  }, []);
 
-  const toggle = () => {
-    if (!supported) return;
-    const synth = window.speechSynthesis;
-    if (speaking || synth.speaking) {
-      synth.cancel();
-      setSpeaking(false);
-      return;
+  // replay cache — clicking the same reply twice costs no extra TTS call
+  const audioUrlRef = useRef<string | null>(null);
+  const audioTextRef = useRef<string>("");
+
+  const stop = useCallback(() => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
     }
+    setSpeaking(false);
+  }, []);
+
+  const speakWithBrowser = useCallback(() => {
+    const synth = window.speechSynthesis;
     const clean = text
       .replace(/[*_`#>|]/g, "")
       .replace(/[\u0D00-\u0D7F]+/g, " ")
       .replace(/\s+/g, " ")
       .trim();
     const utter = new SpeechSynthesisUtterance(clean);
-    // prefer an Indian-English voice when available, else default
     const voices = synth.getVoices();
     const pick =
       voices.find((v) => /en[-_]IN/i.test(v.lang)) ??
@@ -64,9 +71,68 @@ function useSpeakButton(text: string) {
     synth.cancel(); // clear any zombie queue, then speak fresh
     synth.speak(utter);
     setSpeaking(true);
-  };
+  }, [text]);
 
-  return { supported, speaking, toggle };
+  const toggle = useCallback(async () => {
+    if (speaking) {
+      stop();
+      return;
+    }
+    const clean = text
+      .replace(/[*_`#>|]/g, "")
+      .replace(/[\u0D00-\u0D7F]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    // cached replay: same reply, no new request
+    if (audioUrlRef.current && audioTextRef.current === clean) {
+      const audio = new Audio(audioUrlRef.current);
+      audio.onended = () => setSpeaking(false);
+      audio.onerror = () => setSpeaking(false);
+      audioRef.current = audio;
+      audio.play().catch(() => setSpeaking(false));
+      setSpeaking(true);
+      return;
+    }
+    // very long text can't pass the API cap — go straight to browser voice
+    if (clean.length > 700) {
+      if (browserVoice) speakWithBrowser();
+      return;
+    }
+    setSpeaking(true); // optimistic — the wait for /api/voice IS the delivery
+    try {
+      const res = await fetch("/api/voice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: clean }),
+      });
+      const ct = res.headers.get("content-type") ?? "";
+      if (res.ok && ct.startsWith("audio/")) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        audioUrlRef.current = url;
+        audioTextRef.current = clean;
+        const audio = new Audio(url);
+        audio.onended = () => setSpeaking(false);
+        audio.onerror = () => {
+          setSpeaking(false);
+        };
+        audioRef.current = audio;
+        await audio.play();
+        return;
+      }
+      // API said no → browser speech if available
+      throw new Error("tts unavailable");
+    } catch {
+      setSpeaking(false);
+      if (browserVoice) {
+        speakWithBrowser();
+      } else {
+        setSpeaking(false);
+      }
+    }
+  }, [speaking, stop, text, browserVoice, speakWithBrowser]);
+
+  return { supported: mounted, speaking, toggle };
 }
 
 /**
