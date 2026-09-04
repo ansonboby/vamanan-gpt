@@ -1,149 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ChatMessage } from "@/lib/types";
 import { LogoMark } from "@/components/ui/LogoMark";
-
-/**
- * Voice playback for Vamanan's replies.
- *
- * Tries the app's Gemini TTS route first (/api/voice — a warm, directed
- * storyteller voice); if that's unavailable (no key, quota, offline),
- * falls back to the browser's built-in speechSynthesis. The button is
- * hidden only when neither path can work.
- */
-function useSpeakButton(text: string) {
-  const [speaking, setSpeaking] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const browserVoice =
-    typeof window !== "undefined" && "speechSynthesis" in window;
-
-  // mounted after hydration — reveals the button without mismatching SSR
-  // (useSyncExternalStore: server snapshot false, client true, no effect-setState)
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-
-  // stop any in-flight speech on unmount (chat navigation) — also
-  // invalidates in-flight /api/voice requests via the epoch bump
-  useEffect(() => {
-    return () => {
-      epochRef.current++;
-      audioRef.current?.pause();
-      audioRef.current = null;
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
-  // replay cache — clicking the same reply twice costs no extra TTS call
-  const audioUrlRef = useRef<string | null>(null);
-  const audioTextRef = useRef<string>("");
-
-  // epoch guard — any stop()/unmount bumps this so a late-resolving
-  // /api/voice fetch never starts speaking after the user cancelled
-  const epochRef = useRef(0);
-
-  const stop = useCallback(() => {
-    epochRef.current++;
-    audioRef.current?.pause();
-    audioRef.current = null;
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-    setSpeaking(false);
-  }, []);
-
-  const speakWithBrowser = useCallback(() => {
-    const synth = window.speechSynthesis;
-    const clean = text
-      .replace(/[*_`#>|]/g, "")
-      .replace(/[\u0D00-\u0D7F]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-    const utter = new SpeechSynthesisUtterance(clean);
-    const voices = synth.getVoices();
-    const pick =
-      voices.find((v) => /en[-_]IN/i.test(v.lang)) ??
-      voices.find((v) => /^en/i.test(v.lang)) ??
-      null;
-    if (pick) utter.voice = pick;
-    utter.rate = 1;
-    utter.pitch = 1.05;
-    utter.onend = () => setSpeaking(false);
-    utter.onerror = () => setSpeaking(false);
-    utterRef.current = utter; // keep alive — GC mid-speech kills playback in Chrome
-    synth.cancel(); // clear any zombie queue, then speak fresh
-    synth.speak(utter);
-    setSpeaking(true);
-  }, [text]);
-
-  const toggle = useCallback(async () => {
-    if (speaking) {
-      stop();
-      return;
-    }
-    const clean = text
-      .replace(/[*_`#>|]/g, "")
-      .replace(/[\u0D00-\u0D7F]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-    // cached replay: same reply, no new request
-    if (audioUrlRef.current && audioTextRef.current === clean) {
-      const audio = new Audio(audioUrlRef.current);
-      audio.onended = () => setSpeaking(false);
-      audio.onerror = () => setSpeaking(false);
-      audioRef.current = audio;
-      audio.play().catch(() => setSpeaking(false));
-      setSpeaking(true);
-      return;
-    }
-    // very long text can't pass the API cap — go straight to browser voice
-    if (clean.length > 700) {
-      if (browserVoice) speakWithBrowser();
-      return;
-    }
-    setSpeaking(true); // optimistic — the wait for /api/voice IS the delivery
-    const epoch = epochRef.current;
-    try {
-      const res = await fetch("/api/voice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: clean }),
-      });
-      const ct = res.headers.get("content-type") ?? "";
-      if (res.ok && ct.startsWith("audio/")) {
-        const blob = await res.blob();
-        if (epochRef.current !== epoch) return; // user stopped mid-fetch
-        const url = URL.createObjectURL(blob);
-        audioUrlRef.current = url;
-        audioTextRef.current = clean;
-        const audio = new Audio(url);
-        audio.onended = () => setSpeaking(false);
-        audio.onerror = () => {
-          setSpeaking(false);
-        };
-        audioRef.current = audio;
-        await audio.play();
-        return;
-      }
-      // API said no → browser speech if available
-      throw new Error("tts unavailable");
-    } catch {
-      if (epochRef.current !== epoch) return; // user stopped mid-fetch
-      setSpeaking(false);
-      if (browserVoice) {
-        speakWithBrowser();
-      } else {
-        setSpeaking(false);
-      }
-    }
-  }, [speaking, stop, text, browserVoice, speakWithBrowser]);
-
-  return { supported: mounted, speaking, toggle };
-}
 
 /**
  * Claude-style thinking trace. While Vamanan composes, his reasoning
@@ -256,7 +113,6 @@ export function ChatMessageBubble({
   message: ChatMessage;
   onRetry?: () => void;
 }) {
-  const { supported, speaking, toggle } = useSpeakButton(message.text);
   const [traceOpen, setTraceOpen] = useState(false);
 
   if (message.role === "user") {
@@ -295,35 +151,7 @@ export function ChatMessageBubble({
           </>
         )}
         <p className="mb-1 flex items-center gap-1.5 text-[13px] font-medium text-ink-muted">
-          Vamanan{failed ? "" : ""}
-          {!failed && supported && (
-            <button
-              type="button"
-              onClick={toggle}
-              aria-label={speaking ? "Stop Vamanan speaking" : "Listen to Vamanan's reply"}
-              title={speaking ? "Stop speaking" : "Listen to this reply"}
-              className="relative ml-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-forest/10 hover:text-forest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest after:absolute after:-inset-1.5 after:content-['']"
-            >
-              {speaking ? (
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <rect x="2.5" y="2.5" width="11" height="11" rx="2.5" fill="currentColor" />
-                </svg>
-              ) : (
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path
-                    d="M8.5 2.8 4.6 6H2.2a.7.7 0 0 0-.7.7v2.6c0 .39.31.7.7.7h2.4l3.9 3.2c.46.38 1.1.05 1.1-.55V3.35c0-.6-.64-.93-1.1-.55Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M11.6 5.4a3.4 3.4 0 0 1 0 5.2M13.4 3.6a5.9 5.9 0 0 1 0 8.8"
-                    stroke="currentColor"
-                    strokeWidth="1.3"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              )}
-            </button>
-          )}
+          Vamanan
         </p>
         <div
           className={`rounded-lg rounded-tl-sm px-5 py-3.5 text-[15px] leading-relaxed break-words [overflow-wrap:anywhere] ${
