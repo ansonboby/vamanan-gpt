@@ -150,7 +150,13 @@ export function useSessionMemory(): SessionMemory {
     try {
       const parsed = JSON.parse(raw);
       if (!isMemory(parsed)) return defaultMemory();
-      return parsed;
+      // defensive: never let oversized arrays leak into UI even if
+      // localStorage was hand-edited (writes also re-sanitize)
+      return {
+        ...parsed,
+        interests: parsed.interests.slice(0, MAX_INTERESTS),
+        previousTopics: parsed.previousTopics.slice(0, MAX_TOPICS),
+      };
     } catch {
       return defaultMemory();
     }
