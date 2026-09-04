@@ -139,6 +139,12 @@ export function QuizMode() {
           >
             Talk to Vamanan
           </Link>
+          <Link
+            href="/story"
+            className="inline-flex h-12 items-center rounded-pill border border-forest/60 px-7 text-[15px] font-medium text-forest transition-all hover:bg-forest hover:text-[#F6F1E7] active:scale-[0.98]"
+          >
+            Hear the story
+          </Link>
         </div>
       </div>
     );

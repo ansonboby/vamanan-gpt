@@ -67,13 +67,21 @@ export function ChatMessageBubble({
 }
 
 /** The three-dot thinking indicator shown while Vamanan "thinks". */
+const THINKING_LINES = [
+  "Vamanan is consulting his umbrella…",
+  "Vamanan is choosing the right words…",
+  "Vamanan is patting the flowers into place…",
+  "Vamanan is thinking three small thoughts…",
+];
+
 export function ThinkingBubble() {
+  const line = THINKING_LINES[Math.floor(Date.now() / 4000) % THINKING_LINES.length];
   return (
     <div className="flex gap-3 animate-fade-in" aria-live="polite">
       <LogoMark size={36} className="mt-1 shrink-0" />
       <div className="rounded-lg rounded-tl-sm border border-line bg-surface px-5 py-4 shadow-soft">
         <span className="sr-only">Vamanan is thinking</span>
-        <div className="flex items-center gap-1.5" aria-hidden="true">
+        <div className="flex items-center gap-2" aria-hidden="true">
           {[0, 1, 2].map((i) => (
             <span
               key={i}
@@ -81,6 +89,7 @@ export function ThinkingBubble() {
               style={{ animation: `think-dot 1.4s ease-in-out ${i * 0.18}s infinite` }}
             />
           ))}
+          <span className="text-[13px] italic text-ink-muted">{line}</span>
         </div>
       </div>
     </div>

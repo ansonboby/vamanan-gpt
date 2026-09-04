@@ -34,10 +34,18 @@ export function ChatWindow() {
       id: "greeting",
       role: "vamanan",
       text: memory.name
-        ? `Namaskaram, ${memory.name}! Welcome back to my little corner of Kerala. The kettle is on, the stories are in order. Where shall we wander today?`
+        ? memory.quizScore !== undefined
+          ? `Namaskaram, ${memory.name}! Word travels — you took my challenge and scored ${memory.quizScore} of 10. ${
+              memory.quizScore >= 8
+                ? "Impressive. Even the flowers are whispering about it. What shall we talk about now?"
+                : memory.quizScore >= 5
+                  ? "Not bad at all — the story has taken root. Ask me anything and we shall grow it further."
+                  : "Ah, but every tradition begins with a first step — I know that personally. Come, ask me anything."
+            }`
+          : `Namaskaram, ${memory.name}! Welcome back to my little corner of Kerala. The kettle is on, the stories are in order. Where shall we wander today?`
         : "Namaskaram, traveller! I am Vamanan — a small storyteller from the Onam tradition of Kerala. I did not expect company today. What shall I call you?",
     }),
-    [memory.name]
+    [memory.name, memory.quizScore]
   );
   const allMessages = useMemo(() => [greeting, ...messages], [greeting, messages]);
 

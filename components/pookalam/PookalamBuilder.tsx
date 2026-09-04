@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/buttons";
 import { VamananAvatar } from "@/components/vamanan/VamananAvatar";
 
@@ -160,10 +161,16 @@ export function PookalamBuilder() {
                 homecoming king. And tomorrow, of course, we sweep it clean
                 and begin again. That is the tradition: the welcome is the work.
               </p>
-              <div className="mt-4">
+              <div className="mt-4 flex flex-wrap gap-3">
                 <Button variant="secondary" onClick={sweepClean}>
                   Sweep it clean
                 </Button>
+                <Link
+                  href="/story"
+                  className="inline-flex h-13 items-center rounded-pill bg-forest px-8 text-base font-medium text-[#F6F1E7] shadow-soft transition-all hover:bg-[#1C4A3E] active:scale-[0.98]"
+                >
+                  Now, hear the story
+                </Link>
               </div>
             </div>
           </div>
