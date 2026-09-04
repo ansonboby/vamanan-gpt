@@ -38,7 +38,7 @@ export function SiteNav() {
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-md px-3.5 py-2 text-[15px] transition-colors ${
+                className={`rounded-md min-h-11 px-3.5 py-2 text-[15px] transition-colors ${
                   active
                     ? "bg-forest-soft font-medium text-forest"
                     : "text-ink-muted hover:bg-surface-muted hover:text-ink"
@@ -50,7 +50,7 @@ export function SiteNav() {
           })}
           <Link
             href="/chat"
-            className="ml-3 inline-flex h-10 items-center rounded-pill bg-forest px-5 text-[15px] font-medium text-[#F6F1E7] transition-all hover:bg-[#1C4A3E] active:scale-[0.98]"
+            className="ml-3 inline-flex h-11 items-center rounded-pill bg-forest px-5 text-[15px] font-medium text-[#F6F1E7] transition-all hover:bg-[#1C4A3E] active:scale-[0.98]"
           >
             Meet Vamanan
           </Link>
@@ -58,7 +58,7 @@ export function SiteNav() {
 
         {/* mobile toggle */}
         <button
-          className="flex h-10 w-10 items-center justify-center rounded-md border border-line bg-surface md:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-md border border-line bg-surface md:hidden"
           aria-expanded={open}
           aria-controls="mobile-menu"
           aria-label={open ? "Close menu" : "Open menu"}

@@ -75,7 +75,7 @@ export function Chip({
 }: { children: ReactNode; className?: string } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
-      className={`inline-flex items-center gap-1.5 rounded-pill border border-line bg-surface px-4 py-2 text-sm text-ink transition-all duration-200 hover:border-forest/50 hover:bg-forest-soft active:scale-[0.97] ${className}`}
+      className={`inline-flex min-h-11 items-center gap-1.5 rounded-pill border border-line bg-surface px-4 py-2 text-sm text-ink transition-all duration-200 hover:border-forest/50 hover:bg-forest-soft active:scale-[0.97] ${className}`}
       {...props}
     >
       {children}
@@ -95,7 +95,7 @@ export function ChipLink({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-1.5 rounded-pill border border-line bg-surface px-4 py-2 text-sm text-ink transition-all duration-200 hover:border-forest/50 hover:bg-forest-soft active:scale-[0.97] ${className}`}
+      className={`inline-flex min-h-11 items-center gap-1.5 rounded-pill border border-line bg-surface px-4 py-2 text-sm text-ink transition-all duration-200 hover:border-forest/50 hover:bg-forest-soft active:scale-[0.97] ${className}`}
     >
       {children}
     </Link>

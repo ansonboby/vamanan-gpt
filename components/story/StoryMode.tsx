@@ -38,7 +38,7 @@ export function StoryMode() {
       <header className="flex items-center justify-between">
         <Link
           href="/chat"
-          className="inline-flex items-center gap-2 text-sm font-medium text-ink-muted transition-colors hover:text-forest"
+          className="inline-flex min-h-11 items-center gap-2 rounded-pill px-3 text-sm font-medium text-ink-muted transition-colors hover:text-forest"
         >
           <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

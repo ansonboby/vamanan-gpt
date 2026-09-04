@@ -26,7 +26,7 @@ export function PromptChips({
         <button
           key={p}
           onClick={() => onPick(p)}
-          className="rounded-pill border border-line bg-surface px-4 py-2 text-sm text-ink transition-all duration-200 hover:border-forest/50 hover:bg-forest-soft active:scale-[0.97]"
+          className="min-h-11 rounded-pill border border-line bg-surface px-4 py-2 text-sm text-ink transition-all duration-200 hover:border-forest/50 hover:bg-forest-soft active:scale-[0.97]"
         >
           {p}
         </button>

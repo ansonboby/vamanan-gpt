@@ -192,7 +192,7 @@ export function ChatWindow() {
                   key={mode}
                   onClick={() => switchLanguage(mode)}
                   aria-pressed={memory.language === mode}
-                  className={`rounded-full px-3 py-1.5 text-[13px] transition-all ${
+                  className={`min-h-11 rounded-full px-3.5 text-[13px] transition-all ${
                     memory.language === mode
                       ? "bg-forest text-[#F6F1E7]"
                       : "text-ink-muted hover:text-ink"
@@ -230,7 +230,7 @@ export function ChatWindow() {
             <Link
               href="/"
               aria-label="Back to home"
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-line bg-surface text-ink-muted transition-colors hover:text-forest"
+              className="flex h-11 w-11 items-center justify-center rounded-md border border-line bg-surface text-ink-muted transition-colors hover:text-forest"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -261,7 +261,7 @@ export function ChatWindow() {
                 onClick={() => switchLanguage(mode)}
                 aria-pressed={memory.language === mode}
                 aria-label={`${mode} language`}
-                className={`rounded-full px-2.5 py-1 text-[12px] transition-all ${
+                className={`min-h-11 rounded-full px-3.5 text-[12px] transition-all ${
                   memory.language === mode ? "bg-forest text-[#F6F1E7]" : "text-ink-muted"
                 }`}
               >

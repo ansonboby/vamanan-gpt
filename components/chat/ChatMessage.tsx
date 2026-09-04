@@ -56,7 +56,7 @@ export function ChatMessageBubble({
         {failed && onRetry && (
           <button
             onClick={onRetry}
-            className="mt-2.5 inline-flex h-9 items-center rounded-pill border border-forest/60 px-4 text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-[#F6F1E7]"
+            className="mt-2.5 inline-flex min-h-11 items-center rounded-pill border border-forest/60 px-4 text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-[#F6F1E7]"
           >
             Try again
           </button>

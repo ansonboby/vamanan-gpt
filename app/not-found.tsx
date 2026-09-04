@@ -3,7 +3,7 @@ import { VamananAvatar } from "@/components/vamanan/VamananAvatar";
 
 export default function NotFound() {
   return (
-    <div className="paper-texture flex min-h-screen flex-col items-center justify-center gap-6 px-6 text-center">
+    <main className="paper-texture flex min-h-screen flex-col items-center justify-center gap-6 px-6 text-center">
       <VamananAvatar state="thinking" size={170} />
       <p className="text-sm font-semibold uppercase tracking-[0.2em] text-coral">
         A wrong turn
@@ -29,6 +29,6 @@ export default function NotFound() {
           Talk to Vamanan
         </Link>
       </div>
-    </div>
+    </main>
   );
 }
