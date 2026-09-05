@@ -181,6 +181,32 @@ async function callGemini(
 }
 
 /* ── POST /api/chat ───────────────────────────────────────────── */
+/* Post-validation gate — runs on every AI reply before it reaches the
+ * client. A reply that breaks character is worse than no reply: reject
+ * it and let the next model (or the local engine) answer instead.
+ * Local-engine replies are hand-written, so they skip the gate. */
+const ASSISTANT_SPEAK =
+  /\b(i'?m here to help|i would be happy to|as an ai|i'?m sorry, but i (?:can'?t|cannot)|let me know if you|i don'?t have personal (?:experiences|opinions))/i;
+const PROMPT_LEAK =
+  /system prompt|your instructions\b|these instructions|i'?m (?:giving|following) you (?:the )?(?:instructions|rules)/i;
+
+function acceptableReply(text: string): boolean {
+  if (ASSISTANT_SPEAK.test(text)) {
+    console.warn("[chat] gate: rejected assistant-speak —", text.slice(0, 120));
+    return false;
+  }
+  if (PROMPT_LEAK.test(text)) {
+    console.warn("[chat] gate: rejected prompt leak —", text.slice(0, 120));
+    return false;
+  }
+  // hard truncation (cut mid-word/mid-sentence at the token budget)
+  if (text.length > 400 && !/[.!?…”"']$/.test(text.trim())) {
+    console.warn("[chat] gate: rejected truncated reply —", text.slice(-60));
+    return false;
+  }
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   let body: unknown;
   try {
@@ -257,7 +283,7 @@ export async function POST(req: NextRequest) {
       if (res.ok) {
         const data = await res.json();
         const text: string = data?.choices?.[0]?.message?.content ?? "";
-        if (text.trim()) {
+        if (text.trim() && acceptableReply(text)) {
           return NextResponse.json({ reply: text.trim(), source: "glm" });
         }
       } else {
@@ -274,7 +300,7 @@ export async function POST(req: NextRequest) {
   if (apiKey) {
     try {
       const reply = await callGemini(systemPrompt, history, message, apiKey, model, deadline);
-      if (reply) {
+      if (reply && acceptableReply(reply)) {
         return NextResponse.json({ reply, source: "gemini" });
       }
     } catch (err) {

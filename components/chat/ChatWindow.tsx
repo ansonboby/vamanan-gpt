@@ -86,6 +86,14 @@ export function ChatWindow() {
       else if (mem.language === "mixed") mode = "mixed";
       if (/quiz|challenge/i.test(clean)) mode = "quiz";
       if (/story|mahabali/i.test(clean)) mode = "story";
+      // mirror the script the visitor actually typed — someone writing
+      // Malayalam shouldn't need to find the language switch first
+      if (/[\u0D00-\u0D7F]/.test(clean)) {
+        if (mode === "chat") mode = "malayalam";
+        mem = updateMemory(mem, { language: "malayalam" });
+      } else if (mode === "chat" && /\b(aano|enthaanu|enthanu|sherikkum|nalla|pattum|cheyyam|illa|cholli)\b/i.test(clean)) {
+        mode = "mixed";
+      }
 
       // chain: name → interests → topic, each writing from the last
       mem = recordInterests(mem, clean);
