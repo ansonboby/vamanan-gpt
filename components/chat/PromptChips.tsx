@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { LanguageMode } from "@/lib/types";
 
 export function PromptChips({
   onPick,
@@ -7,6 +8,11 @@ export function PromptChips({
   onPick: (text: string) => void;
   compact?: boolean;
 }) {
+  // chips that switch Vamanan's language — flip the session language
+  // AND tell him, so the next reply actually arrives in that language
+  const languageChips: Record<string, LanguageMode> = {
+    "Speak Malayalam with me": "malayalam",
+  };
   // chips that are journeys, not chat prompts — navigate straight there
   const links: Record<string, string> = {
     "Quiz me": "/quiz",
@@ -38,6 +44,14 @@ export function PromptChips({
           >
             {p}
           </Link>
+        ) : languageChips[p] ? (
+          <button
+            key={p}
+            onClick={() => onPick(`onPickLanguage:${languageChips[p]}:${p}`)}
+            className="min-h-11 rounded-pill border border-line bg-surface px-4 py-2 text-sm text-ink transition-all duration-200 hover:border-forest/50 hover:bg-forest-soft active:scale-[0.97]"
+          >
+            {p}
+          </button>
         ) : (
           <button
             key={p}

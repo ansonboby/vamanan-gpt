@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import posthog from "posthog-js";
 import type { ChatMessage, LanguageMode } from "@/lib/types";
 import {
   useSessionMemory,
@@ -18,6 +19,17 @@ import { ChatInput } from "./ChatInput";
 function uid(): string {
   return Math.random().toString(36).slice(2, 10);
 }
+
+/* language-switch notes — shown the moment a visitor flips the control
+ * or taps a language chip, so the switch is felt before the next reply */
+const LANG_NOTE: Record<LanguageMode, string> = {
+  english:
+    "(Switching to English — I'll keep my Malayalam in my pocket unless you ask for it.)",
+  malayalam:
+    "അല്ലേ? From here on, Malayalam it is — namaskaram! Ask me anything about Onam, and I'll answer as a Malayali would.",
+  mixed:
+    "Perfect — we'll speak a little of both, anglo-malayali style. English for sense, Malayalam for soul. Onam ashamsakal!",
+};
 
 export function ChatWindow() {
   // live session memory (localStorage via external store)
@@ -66,13 +78,30 @@ export function ChatWindow() {
   const send = useCallback(
     async (text: string) => {
       if (thinking) return;
-      const clean = text.trim();
+      let clean = text.trim();
       if (!clean) return;
+
+      // chip directive: switch Vamanan's language, then ask naturally
+      const langSwitch = clean.match(
+        /^onPickLanguage:(english|malayalam|mixed):(.+)$/,
+      );
+      if (langSwitch) {
+        const [, lang, prompt] = langSwitch;
+        posthog.capture("chat_language_changed", { language_mode: lang, via: "chip" });
+        setMessages((prev) => [
+          ...prev,
+          { id: uid(), role: "vamanan", text: LANG_NOTE[lang as LanguageMode] },
+        ]);
+        clean = prompt;
+      }
 
       // Name capture on first message when none is known.
       // updateMemory returns the next memory — keep chaining from it so
       // later writes don't overwrite the name with a stale object.
       let mem = memory;
+      // a chip-switch updates language synchronously so THIS request
+      // already carries it (the whole point of the switch)
+      if (langSwitch) mem = updateMemory(mem, { language: langSwitch[1] as LanguageMode });
       if (!mem.name) {
         const name = maybeExtractName(clean);
         if (name) mem = updateMemory(mem, { name });
@@ -100,6 +129,7 @@ export function ChatWindow() {
       recordTopic(mem, clean);
 
       const history = allMessages.map((m) => ({ role: m.role, text: m.text }));
+      posthog.capture("chat_message_sent", { language_mode: mode });
       setMessages((prev) => [...prev, { id: uid(), role: "user", text: clean }]);
       setLastUserMsg(clean);
       setThinking(true);
@@ -174,21 +204,16 @@ export function ChatWindow() {
     send(lastUserMsg);
   }, [lastUserMsg, send]);
 
+  /* language-switch notes — shared by the control and the chip, so the
+   * visitor sees (and hears) the switch the moment they ask for it */
   const switchLanguage = useCallback(
     (lang: LanguageMode) => {
-      updateMemory(memory, { language: lang });
-      const note: Record<LanguageMode, string> = {
-        english:
-          "(Switching to English — I'll keep my Malayalam in my pocket unless you ask for it.)",
-        malayalam:
-          "അല്ലേ? From here on, Malayalam it is — namaskaram! Ask me anything about Onam, and I'll answer as a Malayali would.",
-        mixed:
-          "Perfect — we'll speak a little of both, anglo-malayali style. English for sense, Malayalam for soul. Onam ashamsakal!",
-      };
+      posthog.capture("chat_language_changed", { language_mode: lang });
       setMessages((prev) => [
         ...prev,
-        { id: uid(), role: "vamanan", text: note[lang] },
+        { id: uid(), role: "vamanan", text: LANG_NOTE[lang] },
       ]);
+      updateMemory(memory, { language: lang });
     },
     [memory]
   );

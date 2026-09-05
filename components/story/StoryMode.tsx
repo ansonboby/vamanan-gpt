@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import posthog from "posthog-js";
 import { STORY_SCENES } from "@/lib/content/story";
 import { VamananAvatar } from "@/components/vamanan/VamananAvatar";
 
@@ -18,6 +19,9 @@ export function StoryMode() {
 
   function go(next: number) {
     const clamped = Math.max(0, Math.min(total - 1, next));
+    if (clamped === total - 1 && index !== total - 1) {
+      posthog.capture("story_completed", { scene_count: total });
+    }
     setIndex(clamped);
     setSeen((s) => (s.includes(clamped) ? s : [...s, clamped]));
   }

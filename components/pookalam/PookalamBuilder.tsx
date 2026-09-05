@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/buttons";
 import { VamananAvatar } from "@/components/vamanan/VamananAvatar";
 
@@ -94,10 +95,19 @@ export function PookalamBuilder() {
 
   function layRing() {
     if (complete) return;
+    const dayNumber = laid + 1;
+    posthog.capture("pookalam_ring_laid", {
+      day_number: dayNumber,
+      flower: flower.name,
+    });
+    if (dayNumber === DAYS.length) {
+      posthog.capture("pookalam_completed", { ring_count: dayNumber });
+    }
     setRings((prev) => [...prev, { color: flower.color, edge: flower.edge }]);
   }
 
   function sweepClean() {
+    posthog.capture("pookalam_cleared", { rings_removed: laid });
     setRings([]);
   }
 

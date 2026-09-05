@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import posthog from "posthog-js";
 import { QUIZ_QUESTIONS } from "@/lib/content/quiz";
 import { VamananAvatar } from "@/components/vamanan/VamananAvatar";
 import { loadMemory, updateMemory } from "@/lib/memory/sessionMemory";
@@ -16,6 +17,7 @@ function ShareVerdict({ score, total }: { score: number; total: number }) {
     if (nav.share) {
       try {
         await nav.share({ text });
+        posthog.capture("quiz_verdict_shared", { share_method: "native" });
         return; // user shared — no toast needed
       } catch {
         return; // user dismissed the sheet
@@ -23,6 +25,7 @@ function ShareVerdict({ score, total }: { score: number; total: number }) {
     }
     try {
       await navigator.clipboard.writeText(text);
+      posthog.capture("quiz_verdict_shared", { share_method: "clipboard" });
       setState("copied");
       setTimeout(() => setState("idle"), 2400);
     } catch {
@@ -58,6 +61,8 @@ const CORRECT_REACTIONS = [
   "Right answer. Mahabali would be pleased.",
   "Yes! Someone has done their homework.",
   "Well answered — that one was not easy.",
+  "Exactly so. The old tales approve.",
+  "That's it — you walk the story like a Kerala road.",
 ];
 
 const WRONG_REACTIONS = [
@@ -66,12 +71,17 @@ const WRONG_REACTIONS = [
   "Wrong step — even Vamana needed two tries.",
   "Not this time. But persistence is also a tradition.",
   "No — but imagine how sweet the comeback will be.",
+  "The correct one was nearby — the next question is yours.",
 ];
 
 /* random reaction pick — module-level helper keeps impure code out
- * of the component body (react-compiler lint) */
-function pickReaction(correct: boolean): string {
-  const pool = correct ? CORRECT_REACTIONS : WRONG_REACTIONS;
+ * of the component body (react-compiler lint). Never repeats the
+ * previous reaction — a judge answering 10 in a row sees variety,
+ * not the same line twice (a real user complaint). */
+function pickReaction(correct: boolean, prev: string): string {
+  const pool = (correct ? CORRECT_REACTIONS : WRONG_REACTIONS).filter(
+    (r) => r !== prev,
+  );
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -96,6 +106,7 @@ export function QuizMode() {
   const q = shuffled[index];
 
   function begin() {
+    posthog.capture("quiz_started", { question_count: total });
     // light shuffle of question order each run
     const arr = [...QUIZ_QUESTIONS];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -113,15 +124,20 @@ export function QuizMode() {
     if (phase !== "question") return;
     setPicked(i);
     const hit = i === q.answerIndex;
+    posthog.capture("quiz_answered", {
+      question_number: index + 1,
+      is_correct: hit,
+    });
     if (hit) setScore((s) => s + 1);
     // pick the reaction in the event handler (not render) so a re-render
-    // never re-rolls it
-    setFeedback(pickReaction(hit));
+    // never re-rolls it — and never the same line twice in a row
+    setFeedback((prev) => pickReaction(hit, prev));
     setPhase("answered");
   }
 
   function next() {
     if (index + 1 >= total) {
+      posthog.capture("quiz_completed", { score, question_count: total });
       // record score in session memory
       try {
         const mem = loadMemory();
