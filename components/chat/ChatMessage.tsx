@@ -15,6 +15,8 @@ const THINK_STEPS = [
   "Setting the scene…",
   "Checking the old records…",
   "Folding in a little Malayalam…",
+  "Nokkatte, thinking…",
+  "An old story surfaces…",
 ];
 
 export function makeThinkingSteps(): string[] {

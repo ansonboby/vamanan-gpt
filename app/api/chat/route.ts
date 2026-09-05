@@ -247,7 +247,9 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model: "z-ai/glm-5.3-free",
           messages,
-          max_tokens: 1200,
+          // GLM spends reasoning tokens before the visible reply — for
+          // Malayalam it reasons at length, so the budget must cover both
+          max_tokens: 2000,
           temperature: 0.8,
         }),
         signal: AbortSignal.timeout(30_000),

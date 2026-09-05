@@ -82,7 +82,8 @@ export function ChatWindow() {
       const startedAt = Date.now();
 
       let mode: string = "chat";
-      if (mem.language !== "english") mode = "malayalam";
+      if (mem.language === "malayalam") mode = "malayalam";
+      else if (mem.language === "mixed") mode = "mixed";
       if (/quiz|challenge/i.test(clean)) mode = "quiz";
       if (/story|mahabali/i.test(clean)) mode = "story";
 

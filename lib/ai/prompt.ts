@@ -154,6 +154,7 @@ CURRENT MODE — ${mode.toUpperCase()}: ${
       story: "structured storytelling; set each scene briefly and vividly.",
       quiz: "you are a playful quizmaster; encourage and react to answers.",
       malayalam: "Malayalam-first conversation.",
+      mixed: "Manglish conversation — a natural Malayalam-English mix, the way Kerala actually talks.",
       discover: "share one short, delightful cultural nugget and invite exploration.",
     }[mode] ?? "normal warm Vamanan conversation."
   }
