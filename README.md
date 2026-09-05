@@ -27,7 +27,7 @@
 <!-- ~10s loop of the live app: laying a pookalam ring by ring, then chatting with Vamanan -->
 <img src="public/demo.gif" alt="Vamanan GPT demo — laying a pookalam on the landing page, then chatting with Vamanan about why Kerala celebrates Onam" width="720">
 
-*The live app, unedited — pookalam builder → chat with real Gemini replies.  
+*The live app, unedited — pookalam builder → chat with real AI replies.  
 Full [81-second demo video](https://vamanan-gpt.vercel.app/demo.mp4).*
 
 </div>
@@ -52,9 +52,10 @@ ten-question challenge — in English, Malayalam, or a friendly mix.
 
 **Three engineering choices worth knowing about:**
 
-- **The demo cannot break.** Chat runs on Gemini with a hand-written local
-  fallback engine — if the API key, quota, or network fails, Vamanan still
-  answers in character (try it: chat works even with no key deployed).
+- **The demo cannot break.** Chat runs on GLM 5.3 with a Gemini chain
+  and a hand-written local fallback engine — if keys, quota, or network
+  fail, Vamanan still answers in character (try it: chat works even
+  with no key deployed).
 - **Hardened by default.** Server-only API key, 20 req/min per-IP rate limit
   with an in-character response, input validation, prompt-injection resistance.
 - **Tested, not claimed.** CI runs lint + typecheck + 13 tests + build on every push
@@ -96,19 +97,24 @@ No account needed — every journey starts with a question.
 ```text
 Browser (Next.js + React + TypeScript + Tailwind)
    │
-   ├── /chat ──────► /api/chat ──► Gemini API (character prompt
-   │                                  + curated cultural knowledge)
+   ├── /chat ──────► /api/chat ──► GLM 5.3 via TokenRouter (character
+   │                                  prompt + curated cultural knowledge)
    │                                  │
-   │                                  └─ on failure or missing key
-   ├── /story ─────► static content  ► local Vamanan engine
+   │                                  ├─ on failure or missing key
+   │                                  ▼
+   │                              Gemini chain (per-model free buckets,
+   │                                  budget-guarded inside a 60s cap)
+   │                                  │
+   │                                  └─ on failure → local engine
+   ├── /story ─────► static content
    ├── /quiz ──────► static content
    │
    └── session memory (name, language, topics, quiz score) → localStorage
 ```
 
-**No API key? No problem.** Chat falls back to a hand-written local engine if
-the Gemini key is missing or the network fails; story and quiz are fully
-static. The demo never breaks.
+**No API key? No problem.** Chat falls back through a Gemini model chain
+and finally a hand-written local engine; story and quiz are fully static.
+The demo never breaks.
 
 **81-second demo video** — rendered with [Remotion](https://remotion.dev)
 from the app's own components (`video/` in this repo): character, story,
@@ -136,21 +142,25 @@ git clone https://github.com/ansonboby/vamanan-gpt.git
 cd vamanan-gpt
 npm install
 
-# Optional — enables live Gemini chat. Without it, the local
+# Optional — enables live AI chat. Without any key, the local
 # Vamanan engine still answers in character.
-cp .env.example .env.local   # then add your GEMINI_API_KEY
+cp .env.example .env.local   # then add your keys
 
 npm run dev                  # http://localhost:3000
 ```
 
-Get a free Gemini API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
+- **GLM 5.3** (primary chat model): free key at
+  [tokenrouter.ai](https://tokenrouter.ai)
+- **Gemini** (fallback chain): free key at
+  [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 
 ### Environment variables
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
-| `GEMINI_API_KEY` | no | — | Enables live Gemini chat; local engine handles everything without it |
-| `GEMINI_MODEL` | no | `gemini-2.5-flash` | Which Gemini model the chat route calls |
+| `TOKENROUTER_API_KEY` | no | — | Enables GLM 5.3 chat (primary model) |
+| `GEMINI_API_KEY` | no | — | Enables the Gemini fallback chain |
+| `GEMINI_MODEL` | no | `gemini-2.5-flash` | First Gemini model in the fallback chain |
 | `NEXT_PUBLIC_SITE_URL` | no | Vercel prod domain | Canonical URL for social share cards |
 
 Secrets are only ever read server-side — they never reach client code.
@@ -162,7 +172,7 @@ Secrets are only ever read server-side — they never reach client code.
 | Framework | Next.js 16 (App Router, Turbopack) + TypeScript |
 | UI | React 19 + Tailwind CSS v4 (`@theme` tokens) |
 | Fonts | Fraunces (display) + Inter (UI) via `next/font` |
-| AI | Google Gemini (`gemini-2.5-flash`) + local fallback engine |
+| AI | GLM 5.3 (primary) → Gemini chain → local fallback engine |
 | Memory | localStorage (session-scoped, no accounts) |
 | Art | Hand-drawn SVG — no stock images |
 | Deploy | Vercel |
@@ -188,7 +198,7 @@ app/
 ├── story/page.tsx        # five-scene storybook
 ├── quiz/page.tsx         # ten-question challenge
 ├── about/page.tsx        # how it works + cultural care
-├── api/chat/route.ts     # Gemini + local fallback, rate-limited
+├── api/chat/route.ts     # GLM → Gemini chain → local fallback, rate-limited
 ├── layout.tsx            # fonts, metadata, social cards
 ├── opengraph-image.tsx   # 1200×630 share card (satori)
 ├── icon.svg              # chatra umbrella favicon
@@ -258,7 +268,8 @@ and AI assistants alike.
 
 - **The Mahabali legend** — told in Kerala for generations; this project
   presents it as tradition, not history.
-- [Google Gemini](https://ai.google.dev) for the runtime AI
+- [GLM 5.3](https://tokenrouter.ai) via TokenRouter and
+  [Google Gemini](https://ai.google.dev) for the runtime AI
 - [Fraunces](https://fonts.google.com/specimen/Fraunces) &
   [Inter](https://fonts.google.com/specimen/Inter) typefaces
 - [Vercel](https://vercel.com) for hosting

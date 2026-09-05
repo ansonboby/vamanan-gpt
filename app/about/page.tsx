@@ -40,11 +40,12 @@ export default function AboutPage() {
                 How it works
               </h2>
               <p className="mt-3 text-[15px] leading-relaxed text-ink-muted">
-                Vamanan talks through a large language model (Google&rsquo;s
-                Gemini), guided by a carefully layered character prompt and a
-                curated knowledge base of Onam traditions. The story and quiz
-                modes run on hand-written, verified content — so they work
-                even when the network does not.
+                Vamanan talks through a large language model (GLM 5.3,
+                with a Gemini fallback chain), guided by a carefully
+                layered character prompt and a curated knowledge base of
+                Onam traditions. The story and quiz modes run on
+                hand-written, verified content — so they work even when
+                the network does not.
               </p>
             </section>
             <section className="rounded-lg border border-line bg-surface p-6 shadow-soft">

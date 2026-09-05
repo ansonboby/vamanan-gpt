@@ -1,8 +1,9 @@
 /**
  * Local Vamanan fallback engine.
  *
- * The chat experience prefers the Gemini API, but story, quiz and this
- * modest pattern engine mean the product never breaks in front of a judge.
+ * The chat experience prefers a live model (GLM 5.3, falling back to
+ * Gemini), but story, quiz and this modest pattern engine mean the
+ * product never breaks in front of a judge.
  * Answers are hand-written in Vamanan's voice from the curated knowledge base.
  *
  * The engine is conversation-aware: it receives recent assistant replies so
