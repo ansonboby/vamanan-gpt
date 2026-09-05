@@ -94,7 +94,10 @@ async function callGemini(
   history: Msg[],
   message: string,
   apiKey: string,
-  model: string
+  model: string,
+  /** absolute function deadline (ms epoch) shared with the GLM path —
+   * the chain must finish inside it or hand off to the local engine */
+  functionDeadline: number
 ): Promise<string | null> {
   const contents = [
     ...history.map((h) => ({
@@ -104,7 +107,10 @@ async function callGemini(
     { role: "user", parts: [{ text: message }] },
   ];
 
+  /** attempt one Gemini model — timeout clamped to whatever budget is
+   * left, so a late-chain attempt can never push past the deadline */
   async function attempt(m: string): Promise<Response> {
+    const budget = Math.max(1_000, Math.min(15_000, deadline - Date.now()));
     return fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`,
       {
@@ -118,22 +124,47 @@ async function callGemini(
             maxOutputTokens: 700,
           },
         }),
-        signal: AbortSignal.timeout(15_000),
+        signal: AbortSignal.timeout(budget),
       }
     );
   }
 
   /* Model chain — each has its own free-tier daily bucket, so exhausting
    * one (or the per-minute blip) falls to the next instead of dead-ending
-   * the chat in canned local replies during a demo. */
+   * the chat in canned local replies during a demo.
+   *
+   * Budget guard: the whole chain must finish inside the serverless
+   * 60s cap — the deadline is computed ONCE at request start (in POST)
+   * so the GLM path's spend counts against it too. Each attempt checks
+   * it, and the 429 retry is skipped when the budget is spent; the
+   * worst case is a clean local-engine answer — never a kill mid-chain. */
+  const deadline = functionDeadline;
   const chain = [model, ...MODEL_CHAIN.filter((m) => m !== model)];
   for (const m of chain) {
-    let res = await attempt(m);
-    // per-minute blip — one short retry before moving down the chain
-    if (res.status === 429) {
+    const remaining = deadline - Date.now();
+    if (remaining < 5_000) {
+      console.warn(`[chat] budget spent before ${m} — local engine`);
+      break;
+    }
+    let res: Response;
+    try {
+      res = await attempt(m);
+    } catch {
+      // network throw / abort — this model is unreachable, try the next
+      console.warn(`[chat] ${m} fetch threw — trying next model`);
+      continue;
+    }
+    // per-minute blip — one retry only if the full 2.5s backoff + 15s
+    // attempt still fits inside the function budget
+    if (res.status === 429 && deadline - Date.now() > 18_000) {
       console.warn(`[chat] ${m} 429 — retrying once after backoff`);
       await new Promise((r) => setTimeout(r, 2_500));
-      res = await attempt(m);
+      try {
+        res = await attempt(m);
+      } catch {
+        console.warn(`[chat] ${m} retry threw — trying next model`);
+        continue;
+      }
     }
     if (!res.ok) {
       console.error(`[chat] ${m} error:`, res.status, (await res.text().catch(() => "")).slice(0, 200));
@@ -175,6 +206,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // absolute function deadline — computed BEFORE the GLM attempt so
+  // its spend counts against the Gemini chain too (10s headroom under
+  // the 60s serverless cap for parsing + the local-engine finish)
+  const deadline = Date.now() + 50_000;
+
   const systemPrompt = buildSystemPrompt({
     memory: {
       name: memory?.name,
@@ -187,9 +223,10 @@ export async function POST(req: NextRequest) {
 
   /* ── GLM 5.3 via tokenrouter — primary ─────────────────────
    * Free, generous daily quota, genuinely strong character voice.
-   * Tradeoff: it reasons before answering (17-30s round trip), which
-   * the client's thinking trace covers gracefully. On any miss
-   * (cold start, timeout, error) fall straight through to Gemini. */
+   * Tradeoff: it reasons before answering (typically 5-25s, but ~1 in 4
+   * calls hangs), so it gets a 30s budget — on any miss (cold start,
+   * timeout, error) fall straight through to Gemini, which answers in
+   * 2-5s. The client's thinking trace covers the wait either way. */
   const glmKey = process.env.TOKENROUTER_API_KEY;
   if (glmKey) {
     try {
@@ -213,7 +250,7 @@ export async function POST(req: NextRequest) {
           max_tokens: 1200,
           temperature: 0.8,
         }),
-        signal: AbortSignal.timeout(40_000),
+        signal: AbortSignal.timeout(30_000),
       });
       if (res.ok) {
         const data = await res.json();
@@ -234,7 +271,7 @@ export async function POST(req: NextRequest) {
 
   if (apiKey) {
     try {
-      const reply = await callGemini(systemPrompt, history, message, apiKey, model);
+      const reply = await callGemini(systemPrompt, history, message, apiKey, model, deadline);
       if (reply) {
         return NextResponse.json({ reply, source: "gemini" });
       }

@@ -111,6 +111,10 @@ export function ChatWindow() {
             },
             mode,
           }),
+          // hard client deadline — if the serverless function dies before
+          // responding (60s cap), this aborts and the failed-state retry
+          // appears instead of an eternal thinking spinner
+          signal: AbortSignal.timeout(58_000),
         });
         const data = (await res.json().catch(() => null)) as {
           reply?: string;
