@@ -68,6 +68,13 @@ const WRONG_REACTIONS = [
   "No — but imagine how sweet the comeback will be.",
 ];
 
+/* random reaction pick — module-level helper keeps impure code out
+ * of the component body (react-compiler lint) */
+function pickReaction(correct: boolean): string {
+  const pool = correct ? CORRECT_REACTIONS : WRONG_REACTIONS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 function reaction(score: number, total: number): string {
   const pct = score / total;
   if (pct === 1) return "Perfect! Ellam nalla — you know Kerala like a Malayali. Mahabali himself would ask YOU for tips.";
@@ -87,7 +94,6 @@ export function QuizMode() {
 
   const total = shuffled.length;
   const q = shuffled[index];
-  const correct = picked !== null && picked === q?.answerIndex;
 
   function begin() {
     // light shuffle of question order each run
@@ -106,12 +112,11 @@ export function QuizMode() {
   function answer(i: number) {
     if (phase !== "question") return;
     setPicked(i);
-    const correct = i === q.answerIndex;
-    if (correct) setScore((s) => s + 1);
-    // pick the reaction now (in the event handler, not render) so a
-    // re-render never re-rolls it
-    const pool = correct ? CORRECT_REACTIONS : WRONG_REACTIONS;
-    setFeedback(pool[Math.floor(Math.random() * pool.length)]);
+    const hit = i === q.answerIndex;
+    if (hit) setScore((s) => s + 1);
+    // pick the reaction in the event handler (not render) so a re-render
+    // never re-rolls it
+    setFeedback(pickReaction(hit));
     setPhase("answered");
   }
 

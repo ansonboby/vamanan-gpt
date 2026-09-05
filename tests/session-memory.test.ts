@@ -27,7 +27,6 @@ const { loadMemory, updateMemory, recordTopic, recordInterests, maybeExtractName
 beforeEach(() => store.clear());
 
 test("updateMemory chains correctly (name then interests then topics)", () => {
-  // eslint-disable-next-line prefer-const, @typescript-eslint/no-unused-vars -- reassignment IS the chain
   let m = loadMemory();
   m = updateMemory(m, { name: "Ravi" });
   m = updateMemory(m, { language: "mixed" });
