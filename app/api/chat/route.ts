@@ -276,6 +276,9 @@ export async function POST(req: NextRequest) {
           // GLM spends reasoning tokens before the visible reply — for
           // Malayalam it reasons at length, so the budget must cover both
           max_tokens: 2000,
+          // low effort keeps casual replies snappy (2-21s measured vs
+          // 13-45s default); character quality is unchanged
+          reasoning_effort: "low",
           temperature: 0.8,
         }),
         signal: AbortSignal.timeout(30_000),

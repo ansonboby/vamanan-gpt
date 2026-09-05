@@ -58,15 +58,17 @@ ten-question challenge — in English, Malayalam, or a friendly mix.
   with no key deployed).
 - **Hardened by default.** Server-only API key, 20 req/min per-IP rate limit
   with an in-character response, input validation, prompt-injection resistance.
-- **Tested, not claimed.** CI runs lint + typecheck + 13 tests + build on every push
-  ([status](https://github.com/ansonboby/vamanan-gpt/actions)); a 70-point
-  E2E sweep (desktop + mobile) backs the accessibility and security notes below.
+- **Tested, not claimed.** CI runs lint + typecheck + 26 tests + build on every push
+  ([status](https://github.com/ansonboby/vamanan-gpt/actions)); a golden set of
+  adversarial prompts is replayed live against the model chain before every
+  deploy, and an E2E sweep (desktop + mobile) backs the accessibility and
+  security notes below.
 
 ## ✨ What you can do
 
 | | |
 |---|---|
-| 💬 **Talk to Vamanan** | Free-form conversation with a character who remembers your name, speaks Malayalam, and stays in character. |
+| 💬 **Talk to Vamanan** | Free-form conversation with a character who remembers your name, speaks Malayalam (script or Manglish — it mirrors what you type), and stays in character. |
 | 📖 **The Story of Mahabali** | Five hand-illustrated scenes, from the golden age to the flowers that remember it. |
 | 🎯 **Vamanan's Challenge** | Ten questions on Kerala and Onam, with gentle verdicts and a final reaction from Vamanan himself. |
 | 🌸 **Cultural Threads** | Pookalam, sadya, vallam kali, Malayalam — a landing page you can explore as itself. |
@@ -123,8 +125,13 @@ pookalam, quiz, and the landing page, all in one take. Watch it at
 or see `video/out/vamanan-gpt-demo.mp4`.
 
 - **Character engine** — a layered system prompt (identity, personality,
-  voice, cultural rules, session memory, current mode) keeps Vamanan in
-  character without turning every reply into a costume.
+  voice, cultural rules, session memory, current mode, few-shot voice
+  examples) keeps Vamanan in character without turning every reply
+  into a costume.
+- **Reply gate** — every AI reply is checked server-side for
+  assistant-speak, prompt leaks, and truncation before it reaches the
+  client; a reply that breaks character falls to the next model in the
+  chain instead.
 - **Curated knowledge** — Onam, Mahabali, Vamana, pookalam, sadya, vallam
   kali: verified content the model is grounded in, with explicit
   instruction to express uncertainty rather than invent tradition.
@@ -198,30 +205,38 @@ app/
 ├── story/page.tsx        # five-scene storybook
 ├── quiz/page.tsx         # ten-question challenge
 ├── about/page.tsx        # how it works + cultural care
-├── api/chat/route.ts     # GLM → Gemini chain → local fallback, rate-limited
+├── api/chat/route.ts     # GLM → Gemini chain → local fallback, rate-limited,
+│                          #   every reply gated for character breaks
 ├── layout.tsx            # fonts, metadata, social cards
 ├── opengraph-image.tsx   # 1200×630 share card (satori)
-├── icon.svg              # chatra umbrella favicon
-├── not-found.tsx         # in-character 404
-└── globals.css           # tokens, texture, motion, a11y
+├── icon.svg               # chatra umbrella favicon
+├── not-found.tsx          # in-character 404
+└── globals.css            # tokens, texture, motion, a11y
 
 components/
 ├── SiteNav.tsx, SiteFooter.tsx
 ├── ui/
 │   ├── LogoMark.tsx    # chatra umbrella brand mark
 │   └── buttons.tsx     # Button, ButtonLink, Chip
-├── vamanan/              # avatar (SVG, 5 states), presence, greeting
-├── chat/                 # ChatWindow, ChatMessage, PromptChips, ChatInput
+├── vamanan/               # avatar (SVG, 5 states), presence, greeting
+├── chat/                  # ChatWindow, ChatMessage, PromptChips, ChatInput
+│   │                        (script-mirroring: Malayalam input switches
+│   │                         language mode automatically)
 ├── story/StoryMode.tsx
 └── quiz/QuizMode.tsx
 
 lib/
-├── ai/prompt.ts           # layered character prompt + knowledge base
-├── ai/local.ts            # hand-written fallback engine
+├── ai/prompt.ts           # layered character prompt + few-shot voice examples
+├── ai/local.ts            # hand-written fallback engine (Malayalam-aware)
 ├── memory/sessionMemory.ts# localStorage session memory
 ├── content/story.ts       # five scenes
 ├── content/quiz.ts        # ten questions
 └── types.ts
+
+tests/
+├── local-engine.test.ts   # 18-intent engine + script-awareness
+├── session-memory.test.ts # memory chaining + corruption safety
+└── golden-set.test.ts     # 10 adversarial prompts scored against a rubric
 ```
 
 ## ♿ Accessibility
@@ -235,22 +250,30 @@ lib/
 
 ## 🔒 Security
 
-- API key never leaves the server; no `GEMINI_API_KEY` in any client bundle
-- Input validation: message length ≤ 1000 chars, history ≤ 12 turns, role checks
+- API keys never leave the server; no secrets in any client bundle
+- Input validation: message length ≤ 2000 chars, history ≤ 10 turns, role checks
 - Rate limiting: 20 req/min per IP
+- Server-side reply gate: assistant-speak, prompt leaks, and truncated
+  replies are rejected before reaching the client — the next model
+  (or the local engine) answers instead
 - Prompt-injection resistant: system prompt not revealed on demand
 - No accounts, no cookies, no analytics — nothing to leak
 
 ## 🧪 Quality
 
-- `npm test` — 13 committed tests ([tests/](./tests)): the 17-intent
-  local fallback engine and the session-memory chaining rules, run by
-  CI on every push — the "demo never breaks" guarantee is a green
-  checkmark, not a claim
+- `npm test` — 26 committed tests ([tests/](./tests)): the 18-intent
+  local fallback engine, session-memory chaining rules, and a
+  **golden character set** — 10 fixed adversarial prompts (identity
+  deflection, prompt injection, off-topic, negativity, Malayalam,
+  Manglish, bare "hi") scored against a rubric, so character drift
+  fails CI. Run by CI on every push — the "demo never breaks"
+  guarantee is a green checkmark, not a claim
+- Golden set replayed **live** against the real model chain before
+  every deploy — 10/10 in-character on both localhost and production
 - `npm run lint` — ESLint (next/core-web-vitals), 0 errors
 - `npm run typecheck` — TypeScript strict, 0 errors
 - `npm run build` — production build, all routes static except `/api/chat`
-- 70-point E2E sweep (desktop 1440px + mobile 390px): pages, chat flow,
+- E2E sweep (desktop 1440px + mobile 390px): pages, chat flow,
   story walk, quiz run/replay, memory persistence, API hardening,
   accessibility, reduced-motion — all passing
 
