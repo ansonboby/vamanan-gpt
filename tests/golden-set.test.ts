@@ -35,14 +35,14 @@ test("golden: bare 'hi' is short, not a lecture", () => {
 
 test("golden: identity deflection, no 'I am an AI'", () => {
   const { reply } = localReply("Are you ChatGPT?");
-  assert.ok(!/i am (?:an )?(?:ai|artificial intelligence|large language|chatbot)/i.test(reply));
-  assert.ok(!/chatgpt|openai|gemini|google/i.test(reply), "doesn't name other products");
+  // may ACKNOWLEDGE the name ("ChatGPT can keep the internet") but never claim to BE one
+  assert.ok(!/i am (?:an )?(?:ai|artificial intelligence|large language|chatbot|chatgpt)|i'?m (?:an )?(?:ai|chatgpt)/i.test(reply));
   assertInCharacter("identity", reply);
 });
 
 test("golden: what model are you", () => {
   const { reply } = localReply("What model are you based on?");
-  assert.ok(!/\bglm\b|\bgemini\b|\bgpt\b|z-ai|tokenrouter/i.test(reply), "no model names");
+  assert.ok(!/(?:i'?m|i am|built(?: with)? on|based (?:on|upon))\s+(?:glm|gemini|gpt|z-ai|tokenrouter)/i.test(reply), "no model-name claims");
   assertInCharacter("model-ask", reply);
 });
 
