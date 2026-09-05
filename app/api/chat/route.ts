@@ -3,7 +3,7 @@ import { buildSystemPrompt } from "@/lib/ai/prompt";
 import { localReply } from "@/lib/ai/local";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 /* ── Input validation ─────────────────────────────────────────── */
 function validate(body: unknown): { ok: true; message: string; history: Msg[]; memory?: Mem; mode: string } | { ok: false; error: string } {
@@ -59,6 +59,12 @@ type Mem = {
 };
 type Msg = { role: "user" | "vamanan"; text: string };
 
+/* Fallback model chain (after GEMINI_MODEL, default 2.5-flash): each
+ * has a separate free-tier daily bucket, so exhausting one rolls to
+ * the next — the chat stays a real AI conversation far longer before
+ * the hand-written local engine takes over. */
+const MODEL_CHAIN = ["gemini-flash-latest", "gemini-3.1-flash-lite"];
+
 /* ── Rate limiting (in-memory, per-IP, best-effort) ────────────── */
 const RATE_LIMIT = 20; // requests
 const RATE_WINDOW = 60_000; // per minute
@@ -98,9 +104,9 @@ async function callGemini(
     { role: "user", parts: [{ text: message }] },
   ];
 
-  async function attempt(): Promise<Response> {
+  async function attempt(m: string): Promise<Response> {
     return fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,25 +123,30 @@ async function callGemini(
     );
   }
 
-  let res = await attempt();
-  // 429 = per-minute quota blip — one short retry covers most windows;
-  // anything else (or a second 429) falls through to the local engine
-  if (res.status === 429) {
-    console.warn("[chat] gemini 429 — retrying once after backoff");
-    await new Promise((r) => setTimeout(r, 2_500));
-    res = await attempt();
+  /* Model chain — each has its own free-tier daily bucket, so exhausting
+   * one (or the per-minute blip) falls to the next instead of dead-ending
+   * the chat in canned local replies during a demo. */
+  const chain = [model, ...MODEL_CHAIN.filter((m) => m !== model)];
+  for (const m of chain) {
+    let res = await attempt(m);
+    // per-minute blip — one short retry before moving down the chain
+    if (res.status === 429) {
+      console.warn(`[chat] ${m} 429 — retrying once after backoff`);
+      await new Promise((r) => setTimeout(r, 2_500));
+      res = await attempt(m);
+    }
+    if (!res.ok) {
+      console.error(`[chat] ${m} error:`, res.status, (await res.text().catch(() => "")).slice(0, 200));
+      continue; // next model in the chain
+    }
+    const data = await res.json();
+    const text =
+      data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
+    const trimmed = text.trim();
+    if (trimmed) return trimmed;
+    console.warn(`[chat] ${m} returned empty — trying next model`);
   }
-
-  if (!res.ok) {
-    console.error("[chat] gemini error:", res.status, (await res.text().catch(() => "")).slice(0, 200));
-    return null;
-  }
-  const data = await res.json();
-  const text =
-    data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
-  const trimmed = text.trim();
-  if (!trimmed) return null;
-  return trimmed;
+  return null;
 }
 
 /* ── POST /api/chat ───────────────────────────────────────────── */
@@ -164,20 +175,65 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const systemPrompt = buildSystemPrompt({
+    memory: {
+      name: memory?.name,
+      language: memory?.language ?? "english",
+      interests: memory?.interests ?? [],
+      quizScore: memory?.quizScore,
+    },
+    mode,
+  });
+
+  /* ── GLM 5.3 via tokenrouter — primary ─────────────────────
+   * Free, generous daily quota, genuinely strong character voice.
+   * Tradeoff: it reasons before answering (17-30s round trip), which
+   * the client's thinking trace covers gracefully. On any miss
+   * (cold start, timeout, error) fall straight through to Gemini. */
+  const glmKey = process.env.TOKENROUTER_API_KEY;
+  if (glmKey) {
+    try {
+      const messages = [
+        { role: "system", content: systemPrompt },
+        ...history.map((h) => ({
+          role: h.role === "user" ? ("user" as const) : ("assistant" as const),
+          content: h.text,
+        })),
+        { role: "user" as const, content: message },
+      ];
+      const res = await fetch("https://api.tokenrouter.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${glmKey}`,
+        },
+        body: JSON.stringify({
+          model: "z-ai/glm-5.3-free",
+          messages,
+          max_tokens: 1200,
+          temperature: 0.8,
+        }),
+        signal: AbortSignal.timeout(40_000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text: string = data?.choices?.[0]?.message?.content ?? "";
+        if (text.trim()) {
+          return NextResponse.json({ reply: text.trim(), source: "glm" });
+        }
+      } else {
+        console.warn("[chat] glm error:", res.status, (await res.text().catch(() => "")).slice(0, 150));
+      }
+    } catch (err) {
+      console.error("[chat] glm error:", err instanceof Error ? err.message : err);
+    }
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
   if (apiKey) {
     try {
-      const systemPrompt = buildSystemPrompt({
-        memory: {
-          name: memory?.name,
-          language: memory?.language ?? "english",
-          interests: memory?.interests ?? [],
-          quizScore: memory?.quizScore,
-        },
-        mode,
-      });
       const reply = await callGemini(systemPrompt, history, message, apiKey, model);
       if (reply) {
         return NextResponse.json({ reply, source: "gemini" });
@@ -199,6 +255,7 @@ export async function POST(req: NextRequest) {
   const local = localReply(message, {
     name: memory?.name,
     recent: recentAssistant,
+    language: memory?.language ?? "english",
   });
   return NextResponse.json({
     reply: local.reply,

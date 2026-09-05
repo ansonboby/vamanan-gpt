@@ -57,7 +57,7 @@ const CORRECT_REACTIONS = [
   "Correct — the story lives in you.",
   "Right answer. Mahabali would be pleased.",
   "Yes! Someone has done their homework.",
-  "Nalla! That one was not easy.",
+  "Well answered — that one was not easy.",
 ];
 
 const WRONG_REACTIONS = [
@@ -82,6 +82,7 @@ export function QuizMode() {
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState("");
   const [shuffled, setShuffled] = useState(QUIZ_QUESTIONS);
 
   const total = shuffled.length;
@@ -105,7 +106,12 @@ export function QuizMode() {
   function answer(i: number) {
     if (phase !== "question") return;
     setPicked(i);
-    if (i === q.answerIndex) setScore((s) => s + 1);
+    const correct = i === q.answerIndex;
+    if (correct) setScore((s) => s + 1);
+    // pick the reaction now (in the event handler, not render) so a
+    // re-render never re-rolls it
+    const pool = correct ? CORRECT_REACTIONS : WRONG_REACTIONS;
+    setFeedback(pool[Math.floor(Math.random() * pool.length)]);
     setPhase("answered");
   }
 
@@ -200,13 +206,13 @@ export function QuizMode() {
     <div className="mx-auto max-w-2xl px-5 py-8 sm:px-6">
       <header className="flex items-center justify-between">
         <Link
-          href="/chat"
+          href="/"
           className="inline-flex min-h-11 items-center gap-2 rounded-pill px-3 text-sm font-medium text-ink-muted transition-colors hover:text-forest"
         >
           <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          Leave quietly
+          Back to the courtyard
         </Link>
         <p className="text-sm font-medium tabular-nums text-ink-muted" aria-live="polite">
           {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
@@ -236,17 +242,17 @@ export function QuizMode() {
           const isCorrect = i === q.answerIndex;
           const isPicked = picked === i;
           let style =
-            "border-line bg-surface hover:border-forest/50 hover:bg-forest-soft";
+            "border-line bg-surface text-ink hover:border-forest/50 hover:bg-forest-soft";
           let label = "";
           if (phase === "answered") {
             if (isCorrect) {
-              style = "border-forest bg-forest-soft";
+              style = "border-forest bg-forest text-[#F6F1E7]";
               label = "✓ correct";
             } else if (isPicked) {
-              style = "border-coral bg-coral-soft/60";
+              style = "border-coral bg-coral-soft/60 text-ink";
               label = "✗ not this one";
             } else {
-              style = "border-line/60 bg-surface opacity-60";
+              style = "border-line/60 bg-surface text-ink opacity-60";
             }
           }
           return (
@@ -254,7 +260,7 @@ export function QuizMode() {
               key={opt}
               onClick={() => answer(i)}
               disabled={phase === "answered"}
-              className={`group flex min-h-[58px] items-center justify-between gap-3 rounded-lg border px-5 py-4 text-left text-[15.5px] text-ink transition-all duration-200 ${style} ${
+              className={`group flex min-h-[58px] items-center justify-between gap-3 rounded-lg border px-5 py-4 text-left text-[15.5px] transition-all duration-200 ${style} ${
                 phase === "question" ? "active:scale-[0.99]" : ""
               }`}
             >
@@ -262,7 +268,7 @@ export function QuizMode() {
               {label && (
                 <span
                   className={`text-[12px] font-semibold uppercase tracking-wide ${
-                    isCorrect ? "text-forest" : "text-coral"
+                    isCorrect ? "text-[#A3E3B9]" : "text-coral"
                   }`}
                 >
                   {label}
@@ -277,9 +283,7 @@ export function QuizMode() {
       {phase === "answered" && (
         <div className="mt-6 animate-fade-up rounded-lg border border-line bg-surface p-5 shadow-soft">
           <p className="font-medium text-ink">
-            {correct
-              ? CORRECT_REACTIONS[index % CORRECT_REACTIONS.length]
-              : WRONG_REACTIONS[index % WRONG_REACTIONS.length]}
+            {feedback}
           </p>
           <p className="mt-2 text-[14.5px] leading-relaxed text-ink-muted">
             {q.explanation}
@@ -287,7 +291,7 @@ export function QuizMode() {
           <button
             onClick={next}
             autoFocus
-            className="mt-4 inline-flex h-11 items-center gap-2 rounded-pill bg-forest px-6 text-[15px] font-medium text-[#F6F1E7] transition-all hover:bg-[#1C4A3E] active:scale-[0.98]"
+            className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-pill bg-forest px-6 text-base font-medium text-[#F6F1E7] transition-all hover:bg-[#1C4A3E] active:scale-[0.98]"
           >
             {index + 1 >= total ? "See my verdict" : "Continue"}
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">

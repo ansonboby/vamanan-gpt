@@ -30,9 +30,13 @@ type Flower = { name: string; color: string; edge?: string };
 
 const FLOWERS: Flower[] = [
   { name: "Marigold", color: "#E8B84B" },
+  { name: "Deep marigold", color: "#D98E2B" },
   { name: "Thumba white", color: "#FFFDF8", edge: "#DDD5C6" },
+  { name: "Jasmine", color: "#FDF3D8", edge: "#E5D9B8" },
   { name: "Red", color: "#D85D4E" },
+  { name: "Lotus pink", color: "#E8A0A8", edge: "#D98E96" },
   { name: "Forest", color: "#163B32" },
+  { name: "Jacaranda", color: "#9B8EC4", edge: "#8A7CB8" },
   { name: "Moss", color: "#E1ECE7", edge: "#DDD5C6" },
 ];
 
@@ -45,18 +49,23 @@ function ringRadius(i: number): number {
 
 function RingPetals({ index, color, edge }: Ring & { index: number }) {
   const r = ringRadius(index);
-  const petals = Math.max(10, Math.round((2 * Math.PI * r) / 12));
+  // each ring gets its own petal count + rotation offset + size, so
+  // no two rings look alike even with the same flower chosen twice
+  const petalSpan = 11 + (index % 3) * 2; // 11 / 13 / 15 px between petals
+  const petals = Math.max(10, Math.round((2 * Math.PI * r) / petalSpan));
+  const offset = (360 / petals) * (index % 2 === 0 ? 0 : 0.5); // stagger halves
+  const ry = 4.2 + (index % 2) * 0.9; // slight size variation per ring
   return (
     <g className="animate-ring-in">
       {Array.from({ length: petals }, (_, j) => {
-        const angle = (360 / petals) * j;
+        const angle = offset + (360 / petals) * j;
         return (
           <ellipse
             key={j}
             cx={160 + r - 6}
             cy={160}
             rx={7}
-            ry={4.8}
+            ry={ry}
             fill={color}
             stroke={edge}
             strokeWidth={edge ? 0.6 : 0}

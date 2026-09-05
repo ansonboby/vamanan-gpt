@@ -14,6 +14,8 @@ export interface LocalReplyOptions {
   name?: string;
   /** recent assistant replies, oldest first — used to avoid repetition */
   recent?: string[];
+  /** visitor's chosen language mode — fallbacks reply in kind */
+  language?: "english" | "malayalam" | "mixed";
 }
 
 interface Fallback {
@@ -378,6 +380,16 @@ export function localReply(
     }
   }
 
+  // numbers / codes / gibberish — short and playful, not a lecture.
+  // Real out-of-scope questions get the full invite below; "123" is
+  // someone testing the wire, so answer like someone testing it back.
+  if (/^[\s\d\W]+$/.test(m) && m.length <= 24) {
+    return {
+      reply:
+        "Numbers! My specialty begins at ten — the days of Onam. Try me with a question, or count with me: Atham one, Atham two…",
+    };
+  }
+
   if (matched) {
     const picked = pickFallback(matched, recent);
     let reply = picked.reply;
@@ -391,6 +403,28 @@ export function localReply(
 
   // generic — rotate, never repeat the last one
   const last = recent[recent.length - 1];
+  const lang = options?.language;
+
+  // malayalam mode speaks malayalam; mixed mode mixes — the fallback
+  // engine honors the visitor's language switch instead of ignoring it
+  if (lang === "malayalam") {
+    const MAL: string[] = [
+      "Ente kunjintekku ariyillaa ee chodhyam — pakshe Onatte kathakal enikkariyum: Mahabali, pookalam, sadya, vallam kali. Ethenkilum chodhichu nokku!",
+      "Illa saukhyam! Enikku ee vishayam ariyathe — veezhumpozhukkal kathakal kaliyakkathe ennikku parayam. Onam, Mahabali, pookalam — ivayeppatti chodhicho!",
+      "Chodhyam nannayittu aanu, pakshe enikku urappillaa. Athukondu onnum kettichal vakkilla. Onattinte kathakal mathram parayam — athu enikkariyum!",
+    ];
+    const poolM = MAL.filter((g) => g !== last);
+    return { reply: poolM[Math.floor(Math.random() * poolM.length)] ?? MAL[0] };
+  }
+  if (lang === "mixed") {
+    const MIX: string[] = [
+      "Hmm — that one I do not know, and kettichal parayan pattilla (I cannot invent). But Onam kathakal? Athu enikkariyum! Ask me anything about the festival.",
+      "A good question, pakshe (but) my knowledge has edges. Within them: Onam, Mahabali, pookalam, sadya — Kerala's stories, ready to be told.",
+    ];
+    const poolX = MIX.filter((g) => g !== last);
+    return { reply: poolX[Math.floor(Math.random() * poolX.length)] ?? MIX[0] };
+  }
+
   const pool = GENERIC.filter((g) => g !== last);
   const generic = pool[Math.floor(Math.random() * pool.length)] ?? GENERIC[0];
   return { reply: generic };

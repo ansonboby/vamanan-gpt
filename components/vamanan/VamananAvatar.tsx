@@ -56,10 +56,7 @@ export function VamananAvatar({
       {/* ears */}
       <circle cx="70" cy="90" r="5" fill="#C98A54" />
       <circle cx="130" cy="90" r="5" fill="#C98A54" />
-      {/* earrings — small marigold studs */}
-      <circle cx="70" cy="98" r="2.6" fill="#E8B84B" />
-      <circle cx="130" cy="98" r="2.6" fill="#E8B84B" />
-      {/* hairline */}
+      {/* hairline — young brahmachari reading, no earrings */}
       <path d="M76 74 C82 62 118 62 124 74 C116 70 84 70 76 74 Z" fill="#161616" />
       {/* tilak */}
       <path d="M100 72 L100 80" stroke="#D85D4E" strokeWidth="2.2" strokeLinecap="round" />
@@ -70,8 +67,6 @@ export function VamananAvatar({
           <circle cx="92" cy="88" r="2.8" fill="#161616" />
           <circle cx="108" cy="88" r="2.8" fill="#161616" />
           <path d="M94 101 C97 104 103 104 106 101" stroke="#161616" strokeWidth="2.2" strokeLinecap="round" />
-          <circle cx="86" cy="97" r="3" fill="#D85D4E" opacity="0.35" />
-          <circle cx="114" cy="97" r="3" fill="#D85D4E" opacity="0.35" />
         </>
       )}
       {state === "thinking" && (

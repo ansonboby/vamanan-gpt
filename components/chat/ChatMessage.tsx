@@ -39,12 +39,14 @@ export function ThinkingTrace({
 }) {
   const [visible, setVisible] = useState(() => (live ? 1 : 0));
 
-  // while live, reveal further steps one at a time
+  // while live, reveal further steps one at a time — slow enough to
+  // span a long model round trip. Once all steps show, the last line's
+  // pulsing dots carry the wait (no backwards cycling).
   useEffect(() => {
     if (!live || steps.length <= 1) return;
     const t = setInterval(() => {
       setVisible((v) => Math.min(v + 1, steps.length));
-    }, 1300);
+    }, 2000);
     return () => clearInterval(t);
   }, [live, steps.length]);
 

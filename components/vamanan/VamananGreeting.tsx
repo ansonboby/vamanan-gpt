@@ -6,9 +6,11 @@ import { VamananAvatar } from "./VamananAvatar";
 export function VamananGreeting() {
   return (
     <div className="relative flex flex-col items-center">
+      {/* rising sun behind Vamanan's umbrella — upper left, so the
+          avatar's face (right of frame) stays clear of the glow */}
       <div
         aria-hidden="true"
-        className="absolute -top-10 -right-6 h-40 w-40 rounded-full border border-line bg-marigold-soft/40 animate-spin-slow hidden sm:block"
+        className="absolute -top-12 -left-14 h-44 w-44 rounded-full border border-line bg-marigold-soft/40 animate-spin-slow hidden sm:block"
         style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }}
       />
       <div className="animate-breathe">
